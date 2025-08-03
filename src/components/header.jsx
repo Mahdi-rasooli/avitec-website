@@ -35,7 +35,7 @@ export default function ScrollHeader() {
             {/* Header */}
             <div
                 className="main-tool-bar fixed top-0 left-0 w-full 
-                   h-15 bg-primary-foreground text-accent 
+                   h-15 backdrop-blur-sm
                    flex items-center justify-between 
                    transition-all duration-300 z-50 p-6"
             >
@@ -44,9 +44,9 @@ export default function ScrollHeader() {
                 </div>
                 <div>
                     <ul className="p-4 flex items-center justify-center gap-10">
-                        <li className="text-black font-medium cursor-pointer hover:text-xl hover:text-gray-800 hover:duration-600 hover:transition-all">Insights</li>
-                        <li className="text-black font-medium cursor-pointer hover:text-xl hover:text-gray-800 hover:duration-600 hover:transition-all">About us</li>
-                        <li className="text-black font-medium cursor-pointer hover:text-xl hover:text-gray-800 hover:duration-600 hover:transition-all">Contact us</li>
+                        <li className="text-background/50 font-medium cursor-pointer hover:text-xl hover:text-gray-800 hover:duration-600 hover:transition-all">Insights</li>
+                        <li className="text-background/50 font-medium cursor-pointer hover:text-xl hover:text-gray-800 hover:duration-600 hover:transition-all">About us</li>
+                        <li className="text-background/50 font-medium cursor-pointer hover:text-xl hover:text-gray-800 hover:duration-600 hover:transition-all">Contact us</li>
                     </ul>
                 </div>
                 <div>

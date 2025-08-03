@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useLayoutEffect, useState } from 'react';
+import React, { useRef, useLayoutEffect, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -53,6 +53,20 @@ const CoverScroll = () => {
   const scrollIndicatorRef = useRef(null);
 
   const [activeImage, setActiveImage] = useState(-1);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Handle window resize and detect mobile
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Set initial value
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleTagClick = (slideId) => {
     const st = stRef.current;
@@ -72,106 +86,131 @@ const CoverScroll = () => {
   };
 
   useLayoutEffect(() => {
-    const strip = horizontalStripRef.current;
-    const navigation = navigationRef.current;
-    const allSections = gsap.utils.toArray(".desktop-section");
-    const introSection = allSections[0];
-    const imageSections = allSections.slice(1);
+    // gsap.context() is the modern way to use GSAP in React.
+    // It ensures that all animations and ScrollTriggers created inside are properly cleaned up when the component unmounts.
+    const ctx = gsap.context(() => {
+      const strip = horizontalStripRef.current;
+      const navigation = navigationRef.current;
+      const allSections = gsap.utils.toArray(".desktop-section");
+      const introSection = allSections[0];
+      const imageSections = allSections.slice(1);
 
-    gsap.from(heroContentRef.current.children, { autoAlpha: 0, y: 50, stagger: 0.2, duration: 1, ease: 'power3.out', delay: 0.5 });
+      // Animate the initial hero content into view.
+      gsap.from(heroContentRef.current.children, { autoAlpha: 0, y: 50, stagger: 0.2, duration: 1, ease: 'power3.out', delay: 0.5 });
 
-    const scrollWidth = strip.scrollWidth - window.innerWidth;
+      // --- (1) CALCULATE THE TOTAL HORIZONTAL SCROLL DISTANCE ---
+      // This is the total width of the horizontal strip minus the width of the viewport.
+      // It's how far we need to scroll horizontally to see all the content.
+      const scrollWidth = strip.scrollWidth - window.innerWidth;
 
-    const masterTimeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: componentRef.current,
-        pin: true,
-        scrub: 1,
-        start: 'top top',
-        end: () => `+=${scrollWidth}`,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          if (scrollIndicatorRef.current) {
-            gsap.to(scrollIndicatorRef.current, { autoAlpha: 1 - self.progress * 20, duration: 0.1 });
-          }
+      // --- (2) CREATE THE MAIN SCROLLING ANIMATION ---
+      // This is the master timeline that controls the entire horizontal scroll effect.
+      const masterTimeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: componentRef.current, // The trigger for the animation is the main component itself.
+          pin: true, // Pin the component to the screen while the animation is active.
+          scrub: 1, // Smoothly scrub through the animation as the user scrolls.
+          start: 'top top', // Start the animation when the top of the component hits the top of the viewport.
+          end: () => `+=${scrollWidth}`, // End the animation after scrolling the entire horizontal width.
+          invalidateOnRefresh: true, // Recalculate the animation on window resize.
           
-          const introWidth = introSection.offsetWidth;
-          const progress = self.progress;
-          const totalScroll = self.end - self.start;
-          const introPortion = introWidth / totalScroll;
+          // --- (3) UPDATE UI ELEMENTS ON SCROLL ---
+          onUpdate: (self) => {
+            // Hide the "Scroll Right" indicator as the user starts scrolling.
+            if (scrollIndicatorRef.current) {
+              gsap.to(scrollIndicatorRef.current, { autoAlpha: 1 - self.progress * 20, duration: 0.1 });
+            }
+            
+            // --- (4) CALCULATE WHEN TO SHOW THE NAVIGATION ---
+            // We need to figure out what percentage of the total scroll is taken up by the intro section.
+            const introWidth = introSection.offsetWidth;
+            const totalScroll = self.end - self.start;
+            const introPortion = introWidth / totalScroll; // e.g., if intro is 750px and total scroll is 3000px, this is 0.25
 
-          const shouldBeVisible = progress > introPortion && progress < 0.99;
-          if (shouldBeVisible !== navVisible.current) {
-            navVisible.current = shouldBeVisible;
-            gsap.to(navigation, { autoAlpha: shouldBeVisible ? 1 : 0, y: shouldBeVisible ? 0 : 30, duration: 0.3 });
-          }
+            // Show the navigation only after the intro section has scrolled past.
+            const shouldBeVisible = self.progress > introPortion && self.progress < 0.99;
+            if (shouldBeVisible !== navVisible.current) {
+              navVisible.current = shouldBeVisible;
+              gsap.to(navigation, { autoAlpha: shouldBeVisible ? 1 : 0, y: shouldBeVisible ? 0 : 30, duration: 0.3 });
+            }
 
-          if (progress > introPortion) {
-            const horizontalProgress = gsap.utils.normalize(introPortion, 1, progress);
-            const imageIndex = Math.floor(horizontalProgress * slides.length);
-            setActiveImage(Math.min(imageIndex, slides.length - 1));
+            // --- (5) UPDATE THE PROGRESS BAR AND ACTIVE THUMBNAIL ---
+            if (self.progress > introPortion) {
+              // First, calculate how far we are through the *image slides section only*.
+              // We normalize the progress value, treating the start of the images (introPortion) as 0 and the end as 1.
+              const horizontalProgress = gsap.utils.normalize(introPortion, 1, self.progress);
+              
+              // Determine which slide should be active based on the progress.
+              const imageIndex = Math.floor(horizontalProgress * slides.length);
+              setActiveImage(Math.min(imageIndex, slides.length - 1));
 
-            const thumbnailWidth = 180;
-            const thumbnailGap = 12;
-            const maxProgressDistance = (slides.length - 1) * (thumbnailWidth + thumbnailGap);
-            const progressX = horizontalProgress * maxProgressDistance;
+              // --- (6) CALCULATE THE POSITION OF THE PROGRESS BAR INDICATOR ---
+              // This moves the little glossy bar along the thumbnail track.
+              const thumbnailWidth = 180;
+              const thumbnailGap = 12;
+              const maxProgressDistance = (slides.length - 1) * (thumbnailWidth + thumbnailGap);
+              const progressX = horizontalProgress * maxProgressDistance;
 
-            gsap.set([progressBarRef.current, glossyBarRef.current], { x: progressX, ease: 'none' });
-          }
+              gsap.set([progressBarRef.current, glossyBarRef.current], { x: progressX, ease: 'none' });
+            }
+          },
         },
-      },
-    });
-
-    masterTimeline.to(strip, { x: -scrollWidth, ease: 'none' });
-    stRef.current = masterTimeline.scrollTrigger;
-
-    imageSections.forEach((section) => {
-      const textEl = section.querySelector('.slide-text');
-      const imageEl = section.querySelector('.slide-image');
-      gsap.set(imageEl, { filter: 'blur(8px)', scale: 1.05 });
-
-      ScrollTrigger.create({
-        trigger: section,
-        containerAnimation: masterTimeline,
-        start: 'left center',
-        end: 'right center',
-        onEnter: () => gsap.to(textEl, { autoAlpha: 1, y: 0, duration: 0.4, ease: 'power2.out' }),
-        onLeave: () => gsap.to(textEl, { autoAlpha: 0, y: -40, duration: 0.4, ease: 'power2.in' }),
-        onEnterBack: () => gsap.to(textEl, { autoAlpha: 1, y: 0, duration: 0.4, ease: 'power2.out' }),
-        onLeaveBack: () => gsap.to(textEl, { autoAlpha: 0, y: 40, duration: 0.4, ease: 'power2.in' }),
       });
 
-      ScrollTrigger.create({
-        trigger: section,
-        containerAnimation: masterTimeline,
-        start: 'left 60%',
-        end: 'right 40%',
-        onEnter: () => gsap.to(imageEl, { filter: 'blur(0px)', scale: 1, duration: 0.5, ease: 'power2.out' }),
-        onLeave: () => gsap.to(imageEl, { filter: 'blur(8px)', scale: 1.05, duration: 0.5, ease: 'power2.in' }),
-        onEnterBack: () => gsap.to(imageEl, { filter: 'blur(0px)', scale: 1, duration: 0.5, ease: 'power2.out' }),
-        onLeaveBack: () => gsap.to(imageEl, { filter: 'blur(8px)', scale: 1.05, duration: 0.5, ease: 'power2.in' }),
-      });
-    });
+      // Tell the master timeline to move the horizontal strip to the left.
+      masterTimeline.to(strip, { x: -scrollWidth, ease: 'none' });
+      stRef.current = masterTimeline.scrollTrigger;
 
-    return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-    };
+      // --- (7) CREATE ANIMATIONS FOR EACH IMAGE SLIDE ---
+      imageSections.forEach((section) => {
+        const textEl = section.querySelector('.slide-text');
+        const imageEl = section.querySelector('.slide-image');
+        // Start with the image slightly blurred and scaled up.
+        gsap.set(imageEl, { filter: 'blur(8px)', scale: 1.05 });
+
+        // Animate the text into view when its section is centered.
+        ScrollTrigger.create({
+          trigger: section,
+          containerAnimation: masterTimeline, // Link this animation to the main horizontal scroll.
+          start: 'left center',
+          end: 'right center',
+          onEnter: () => gsap.to(textEl, { autoAlpha: 1, y: 0, duration: 0.4, ease: 'power2.out' }),
+          onLeave: () => gsap.to(textEl, { autoAlpha: 0, y: -40, duration: 0.4, ease: 'power2.in' }),
+          onEnterBack: () => gsap.to(textEl, { autoAlpha: 1, y: 0, duration: 0.4, ease: 'power2.out' }),
+          onLeaveBack: () => gsap.to(textEl, { autoAlpha: 0, y: 40, duration: 0.4, ease: 'power2.in' }),
+        });
+
+        // Animate the image to be sharp and focused when it's in the middle of the screen.
+        ScrollTrigger.create({
+          trigger: section,
+          containerAnimation: masterTimeline,
+          start: 'left 60%',
+          end: 'right 40%',
+          onEnter: () => gsap.to(imageEl, { filter: 'blur(0px)', scale: 1, duration: 0.5, ease: 'power2.out' }),
+          onLeave: () => gsap.to(imageEl, { filter: 'blur(8px)', scale: 1.05, duration: 0.5, ease: 'power2.in' }),
+          onEnterBack: () => gsap.to(imageEl, { filter: 'blur(0px)', scale: 1, duration: 0.5, ease: 'power2.out' }),
+          onLeaveBack: () => gsap.to(imageEl, { filter: 'blur(8px)', scale: 1.05, duration: 0.5, ease: 'power2.in' }),
+        });
+      });
+    }, componentRef); // Scope the context to the main component.
+
+    return () => ctx.revert(); // Cleanup function to remove all animations and ScrollTriggers.
   }, []);
 
   return (
     <div ref={componentRef} className="relative overflow-hidden">
       <div className="h-screen w-screen overflow-hidden relative">
-        {/* Animated background particles */}
+        {/* Animated background particles - responsive */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute w-96 h-96 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ top: '10%', left: '80%', animationDelay: '0s', animationDuration: '8s' }}></div>
-          <div className="absolute w-64 h-64 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ top: '60%', left: '10%', animationDelay: '4s', animationDuration: '12s' }}></div>
-          <div className="absolute w-80 h-80 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ top: '30%', left: '40%', animationDelay: '2s', animationDuration: '10s' }}></div>
+          <div className="absolute w-48 md:w-96 h-48 md:h-96 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ top: '10%', left: '70%', animationDelay: '0s', animationDuration: '8s' }}></div>
+          <div className="absolute w-32 md:w-64 h-32 md:h-64 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ top: '60%', left: '5%', animationDelay: '4s', animationDuration: '12s' }}></div>
+          <div className="absolute w-40 md:w-80 h-40 md:h-80 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ top: '30%', left: '40%', animationDelay: '2s', animationDuration: '10s' }}></div>
         </div>
 
         <div ref={horizontalStripRef} className="flex h-full w-max">
-          <section className="desktop-section relative h-full w-[75vw] flex-shrink-0 flex text-white">
+          <section className="desktop-section relative h-full w-screen md:w-[75vw] flex-shrink-0 flex flex-col md:flex-row text-white">
             {/* Main Hero Section */}
-            <div className="w-2/3 h-full flex justify-center items-center relative overflow-hidden">
+            <div className="w-full md:w-2/3 h-full flex justify-center items-center relative overflow-hidden">
               {/* Dynamic gradient background */}
               <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900"></div>
 
@@ -182,13 +221,13 @@ const CoverScroll = () => {
                 }}></div>
               </div>
 
-              {/* Floating elements */}
-              <div className="absolute top-20 right-20 w-32 h-32 border border-white/20 rounded-full animate-spin" style={{ animationDuration: '20s' }}></div>
-              <div className="absolute bottom-32 left-16 w-24 h-24 border border-emerald-400/30 rounded-lg rotate-45 animate-pulse"></div>
-              <div className="absolute top-1/2 right-32 w-16 h-16 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full animate-bounce" style={{ animationDelay: '1s' }}></div>
+              {/* Floating elements - responsive */}
+              <div className="absolute top-10 md:top-20 right-10 md:right-20 w-16 md:w-32 h-16 md:h-32 border border-white/20 rounded-full animate-spin" style={{ animationDuration: '20s' }}></div>
+              <div className="absolute bottom-16 md:bottom-32 left-8 md:left-16 w-12 md:w-24 h-12 md:h-24 border border-emerald-400/30 rounded-lg rotate-45 animate-pulse"></div>
+              <div className="absolute top-1/2 right-16 md:right-32 w-8 md:w-16 h-8 md:h-16 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full animate-bounce" style={{ animationDelay: '1s' }}></div>
 
-              <div ref={heroContentRef} className="max-w-2xl text-left p-12 relative z-10">
-                <h1 className="text-4xl font-black leading-tight mb-6 bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent"
+              <div ref={heroContentRef} className="max-w-2xl text-left p-6 md:p-12 relative z-10">
+                <h1 className="text-2xl md:text-4xl font-black leading-tight mb-4 md:mb-6 bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent"
                   style={{
                     textShadow: '0 0 30px rgba(59, 130, 246, 0.3)',
                     fontFamily: 'system-ui, -apple-system, sans-serif'
@@ -196,53 +235,39 @@ const CoverScroll = () => {
                   AVITEC was founded to develop and expand services to Customers in the Energy, Oil, Gas, and Petrochemical industries with a modern, advanced, innovative, and sustainable approach.
                 </h1>
 
-                {/* <p className="text-xl text-slate-300 mb-10 leading-relaxed">
-                  We help clients shape better decisions through our expertise in risk, retirement, and health.
-                  Experience the future of strategic consulting.
-                </p> */}
-
                 <div className="flex gap-4">
-                  <button className="relative cursor-pointer overflow-hidden group border-2 border-white/30 hover:border-white/60 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 backdrop-blur-sm">
+                  <button className="relative cursor-pointer overflow-hidden group border-2 border-white/30 hover:border-white/60 text-white font-bold py-3 md:py-4 px-6 md:px-8 rounded-2xl transition-all duration-300 backdrop-blur-sm text-sm md:text-base">
                     <span className="relative z-10 group-hover:text-blue-500 transition-colors duration-300">Learn More</span>
                     <span className="absolute inset-0 bg-white/80 scale-x-0 origin-left transition-transform duration-500 ease-out group-hover:scale-x-100 z-0"></span>
                   </button>
-
                 </div>
               </div>
             </div>
 
-            {/* Navigation Sidebar */}
-            <div className="w-1/3 h-full flex flex-col justify-center items-center relative overflow-hidden">
+            {/* Navigation Sidebar - Mobile: hidden, Desktop: Right */}
+            <div className="w-full max-sm:hidden md:w-1/3 h-1/3 md:h-full flex flex-col justify-center items-center relative overflow-hidden">
               {/* Premium background with overlay */}
               <div className="absolute inset-0 bg-gradient-to-br from-slate-700 via-blue-900 to-blue-900"></div>
-              {/* <Image
-                src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80"
-                alt="Corporate office"
-                layout="fill"
-                objectFit="cover"
-                className="opacity-20"
-              /> */}
-              {/* <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent"></div> */}
 
               {/* Animated accent lines */}
-              <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-transparent via-blue-500 to-transparent animate-pulse"></div>
-              <div className="absolute right-0 top-0 w-px h-full bg-gradient-to-b from-transparent via-purple-500/50 to-transparent"></div>
+              <div className="absolute left-0 top-0 w-full md:w-1 h-px md:h-full bg-gradient-to-r md:bg-gradient-to-b from-transparent via-blue-500 to-transparent animate-pulse"></div>
+              <div className="absolute right-0 top-0 w-px h-full bg-gradient-to-b from-transparent via-purple-500/50 to-transparent hidden md:block"></div>
 
-              <div className="relative z-10 text-center">
-                <div className="mb-8">
-                  <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+              <div className="relative z-10 text-center px-4 md:px-0">
+                <div className="mb-4 md:mb-8">
+                  <h2 className="text-xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
                     Navigate Sections
                   </h2>
                 </div>
 
-                <ul className="space-y-6">
+                <ul className="flex md:flex-col space-x-4 md:space-x-0 md:space-y-6 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0">
                   {slides.map((slide, index) => (
-                    <li key={slide.id}>
+                    <li key={slide.id} className="flex-shrink-0">
                       <button
                         onClick={() => handleTagClick(slide.id)}
-                        className="group relative overflow-hidden px-8 py-4 border border-white/40  rounded-xl transition-all duration-500 hover:scale-105 hover:shadow-lg backdrop-blur-sm"
+                        className="group relative overflow-hidden px-4 md:px-8 py-2 md:py-4 border border-white/40 rounded-xl transition-all duration-500 hover:scale-105 hover:shadow-lg backdrop-blur-sm whitespace-nowrap"
                       >
-                        <span className="relative cursor-pointer z-10 text-lg font-semibold text-white group-hover:text-blue-200 transition-colors duration-300">
+                        <span className="relative cursor-pointer z-10 text-sm md:text-lg font-semibold text-white group-hover:text-blue-200 transition-colors duration-300">
                           {slide.text}
                         <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 group-hover:w-full transition-all duration-500"></div>
                         </span>
@@ -272,22 +297,13 @@ const CoverScroll = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-transparent to-purple-900/20"></div>
               </div>
 
-
-
-              {/* Enhanced text content - positioned to the left */}
-              <div className="slide-text absolute left-16 top-1/4  z-10 text-white opacity-0 -translate-y-10">
-                <div className="bg-gradient-to-br from-black/40 via-black/30 to-transparent border border-white/20 rounded-3xl shadow-2xl p-12 max-w-xl">
-                  {/* Category badge */}
-                  {/* <div className="inline-block px-6 py-2 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-full border border-white/30 backdrop-blur-sm mb-6">
-                    <span className="text-blue-200 text-sm font-semibold tracking-widest uppercase">
-                      {slide.id.replace(/^\w/, c => c.toUpperCase())} Excellence
-                    </span>
-                  </div> */}
-
-                  <h2 className="text-6xl font-black tracking-tight mb-6 bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
+              {/* Enhanced text content - responsive positioning */}
+              <div className="slide-text absolute left-4 md:left-16 top-1/4 z-10 text-white opacity-0 -translate-y-10">
+                <div className="bg-gradient-to-br from-black/40 via-black/30 to-transparent border border-white/20 rounded-2xl md:rounded-3xl shadow-2xl p-6 md:p-12 max-w-sm md:max-w-xl">
+                  <h2 className="text-3xl md:text-6xl font-black tracking-tight mb-4 md:mb-6 bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
                     {slide.text}
                   </h2>
-                  <p className="text-xl leading-relaxed text-slate-200 font-light tracking-wide">
+                  <p className="text-base md:text-xl leading-relaxed text-slate-200 font-light tracking-wide">
                     {slide.subtext}
                   </p>
                 </div>
@@ -296,55 +312,60 @@ const CoverScroll = () => {
           ))}
         </div>
 
-        {/* Scroll Right Indicator */}
+        {/* Scroll Right Indicator - responsive */}
         <div
           ref={scrollIndicatorRef}
-          className="absolute top-1/2 right-16 -translate-y-1/2 z-20 text-white flex items-center space-x-4 pointer-events-none"
+          className="absolute top-1/2 right-4 md:right-16 -translate-y-1/2 z-20 text-white flex items-center space-x-2 md:space-x-4 pointer-events-none"
         >
-          <span className="text-sm font-medium tracking-widest animate-pulse uppercase">Scroll</span>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10 animate-pulse">
+          <span className="text-xs md:text-sm font-medium tracking-widest animate-pulse uppercase">Scroll</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 md:w-10 h-6 md:h-10 animate-pulse">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
           </svg>
         </div>
 
-        {/* Enhanced Navigation Bar */}
-        <div ref={navigationRef} className="fixed bottom-8 left-1/4 -translate-x-1/2 z-50 opacity-0">
+        {/* Enhanced Navigation Bar - responsive */}
+        <div ref={navigationRef} className="fixed bottom-4 md:bottom-8 left-1/2 md:left-1/4 -translate-x-1/2 z-50 opacity-0 px-4 md:px-0">
           {/* Progress Bar */}
-          <div className="relative mb-6">
+          <div className="relative mb-4 md:mb-6">
             <div className="w-full h-1 bg-gradient-to-r from-black/20 via-black/40 to-black/20 rounded-full backdrop-blur-lg border border-white/20 shadow-2xl"></div>
             <div
               ref={progressBarRef}
               className="absolute top-0 left-0 h-1 bg-purple-500 rounded-full shadow-lg shadow-blue-500/50"
-              style={{ width: '180px' }}
+              style={{ width: isMobile ? '120px' : '180px' }}
             ></div>
-            {/* <div className="absolute top-0 left-0 h-1 bg-gradient-to-r from-white/30 to-transparent rounded-full animate-pulse" style={{ width: '60px' }}></div> */}
           </div>
 
-          {/* Thumbnail Navigation */}
-          <div className="flex gap-4 relative">
+          {/* Thumbnail Navigation - responsive */}
+          <div className="flex gap-2 md:gap-4 relative overflow-x-auto md:overflow-x-visible">
             {/* Glossy overlay */}
             <div
               ref={glossyBarRef}
-              className="absolute top-0 left-0 rounded-2xl border-2 border-white/60 shadow-2xl backdrop-blur-sm bg-gradient-to-br from-white/20 via-white/10 to-transparent"
-              style={{ width: '180px', height: '120px' }}
+              className="absolute top-0 left-0 rounded-xl md:rounded-2xl border-2 border-white/60 shadow-2xl backdrop-blur-sm bg-gradient-to-br from-white/20 via-white/10 to-transparent flex-shrink-0"
+              style={{ 
+                width: isMobile ? '120px' : '180px', 
+                height: isMobile ? '80px' : '120px' 
+              }}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 via-transparent to-purple-400/20 rounded-2xl"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 via-transparent to-purple-400/20 rounded-xl md:rounded-2xl"></div>
             </div>
 
             {slides.map((slide, i) => (
               <div
                 key={i}
-                className={`rounded-2xl overflow-hidden border-2 transition-all duration-500 relative z-10 cursor-pointer hover:scale-110 ${activeImage === i
+                className={`rounded-xl md:rounded-2xl overflow-hidden border-2 transition-all duration-500 relative z-10 cursor-pointer hover:scale-110 flex-shrink-0 ${activeImage === i
                   ? 'border-white/80 scale-105 shadow-xl shadow-blue-500/30'
                   : 'border-gray-400/30 opacity-60 hover:opacity-80'
                   }`}
-                style={{ width: '180px', height: '120px' }}
+                style={{ 
+                  width: isMobile ? '120px' : '180px', 
+                  height: isMobile ? '80px' : '120px' 
+                }}
                 onClick={() => handleTagClick(slide.id)}
               >
                 <Image src={slide.image} alt={`thumbnail-${i}`} layout="fill" objectFit="cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-                <div className="absolute bottom-2 left-2 right-2">
-                  <p className="text-white text-sm font-semibold truncate">{slide.text}</p>
+                <div className="absolute bottom-1 md:bottom-2 left-1 md:left-2 right-1 md:right-2">
+                  <p className="text-white text-xs md:text-sm font-semibold truncate">{slide.text}</p>
                 </div>
               </div>
             ))}
