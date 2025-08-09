@@ -28,7 +28,7 @@ export default function VideoMaskTransition() {
             scrollTrigger: {
                 trigger: container,
                 start: "top top",
-                end: "+=250%",
+                                end: "+=120%",
                 scrub: 1,
                 pin: true,
                 anticipatePin: 1,
@@ -83,12 +83,12 @@ export default function VideoMaskTransition() {
                                     textAnchor="middle"
                                     dominantBaseline="central"
                                     fill="white"
-                                    fontSize="26vw"
+                                    fontSize="22vw"
                                     fontWeight="900"
                                     fontFamily="Arial Black, sans-serif"
                                     style={{ transformOrigin: 'center center', transformBox: 'fill-box' }}
                                 >
-                                    Avitec
+                                    AVITEC
                                 </text>
                             </mask>
                         </defs>
