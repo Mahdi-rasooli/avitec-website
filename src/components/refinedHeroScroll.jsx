@@ -68,6 +68,10 @@ const Scroll = () => {
   const text2Ref = useRef(null);
   const text3Ref = useRef(null);
 
+  const galleryRef = useRef(null);
+  const mobileLenisRef = useRef(null);
+  const mobileRafIdRef = useRef(null);
+
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -106,6 +110,41 @@ const Scroll = () => {
       lenis.stop();
       lenis.destroy();
       lenisRef.current = null;
+    };
+  }, [isMobile]);
+
+  // Mobile horizontal Lenis for gallery
+  useEffect(() => {
+    if (!isMobile || !galleryRef.current) return;
+
+    const wrapper = galleryRef.current;
+    const content = wrapper.querySelector('.gallery-content');
+
+    const lenis = new Lenis({
+      wrapper: wrapper,
+      content: content,
+      orientation: 'horizontal',
+      gestureDirection: 'vertical',
+      lerp: 0.1,
+      smoothWheel: true,
+      smoothTouch: true,
+      wheelMultiplier: 1.2,
+      touchMultiplier: 1.5,
+      normalizeWheel: true,
+    });
+    mobileLenisRef.current = lenis;
+
+    const raf = (time) => {
+      lenis.raf(time);
+      mobileRafIdRef.current = requestAnimationFrame(raf);
+    };
+    mobileRafIdRef.current = requestAnimationFrame(raf);
+
+    return () => {
+      if (mobileRafIdRef.current) cancelAnimationFrame(mobileRafIdRef.current);
+      lenis.stop();
+      lenis.destroy();
+      mobileLenisRef.current = null;
     };
   }, [isMobile]);
 
@@ -500,11 +539,11 @@ const Scroll = () => {
           </button>
         </div>
 
-        {/* Mobile Services Cards */}
-        <div className="px-6 pb-12 space-y-8">
-          {slides.map((slide, index) => (
-            <div key={slide.id} className="bg-white rounded-lg overflow-hidden shadow-lg">
-              <div className="relative h-48">
+        {/* Mobile Gallery - Horizontal scroll on vertical gesture, no thumbnails/progress */}
+        <div ref={galleryRef} className="relative h-screen overflow-hidden">
+          <div className="gallery-content flex flex-nowrap h-full" style={{ width: `${slides.length * 100}vw` }}>
+            {slides.map((slide, index) => (
+              <div key={slide.id} className="w-screen h-screen relative flex-shrink-0">
                 <Image
                   src={slide.image}
                   alt={slide.text}
@@ -512,17 +551,18 @@ const Scroll = () => {
                   style={{ objectFit: 'cover' }}
                   priority={index === 0}
                 />
+                <div className="absolute inset-0 bg-black/30"></div>
+                <div className="absolute left-6 top-1/4 z-10 text-white max-w-[80%]">
+                  <h2 className="text-3xl font-bold mb-4 leading-tight">
+                    {index === 0 ? "Precision Engineering" : index === 1 ? "Strategic Procurement" : "Excellence in Construction"}
+                  </h2>
+                  <p className="text-lg opacity-90 leading-relaxed">
+                    {slide.subtext}
+                  </p>
+                </div>
               </div>
-              <div className="p-6">
-                <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                  {index === 0 ? "Precision Engineering" : index === 1 ? "Strategic Procurement" : "Excellence in Construction"}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {slide.subtext}
-                </p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     );
