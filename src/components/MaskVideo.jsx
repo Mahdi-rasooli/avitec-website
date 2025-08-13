@@ -12,6 +12,7 @@ export default function VideoMaskTransition() {
     const backgroundVideoRef = useRef(null);
     const textMaskRef = useRef(null);
     const maskedVideoRef = useRef(null);
+    const greenOverlayRef = useRef(null);
     const nextSectionRef = useRef(null);
 
     useEffect(() => {
@@ -19,10 +20,26 @@ export default function VideoMaskTransition() {
         const backgroundVideo = backgroundVideoRef.current;
         const textMask = textMaskRef.current;
         const maskedVideo = maskedVideoRef.current;
+        const greenOverlay = greenOverlayRef.current;
 
         // Initial states
         gsap.set(maskedVideo, { opacity: 0 });
         gsap.set(textMask, { scale: 6, opacity: 0, transformOrigin: "center center" });
+        // Green overlay starts at bottom with 0 height and 90% width, then grows up to fill
+        if (greenOverlay) {
+            gsap.set(greenOverlay, {
+                position: 'absolute',
+                backgroundColor: '#88CE02',
+                bottom: 0,
+                height: '0vh',
+                left: '5vw',
+                right: '5vw',
+                borderRadius: 12,
+                zIndex: 20,
+                transformOrigin: 'bottom center',
+                willChange: 'height,left,right,border-radius'
+            });
+        }
 
         const tl = gsap.timeline({
             scrollTrigger: {
@@ -50,7 +67,23 @@ export default function VideoMaskTransition() {
             opacity: 0,
             duration: 0.5,
             ease: "power2.inOut"
-        }, 0.3);
+        }, 0.3)
+        // Ensure we start the green entrance only after AVITEC is fully shown
+        .add('brandShown', 1.35)
+        // Green overlay rises from bottom and expands from 90% to 100% width while mask fades
+        .to(maskedVideo, {
+            opacity: 0,
+            duration: 1,
+            ease: 'none'
+        }, 'brandShown')
+        .to(greenOverlay, {
+            height: '100vh',
+            left: '0vw',
+            right: '0vw',
+            borderRadius: 0,
+            duration: 1,
+            ease: 'none'
+        }, 'brandShown');
 
         return () => ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     }, []);
@@ -105,6 +138,9 @@ export default function VideoMaskTransition() {
                         </foreignObject>
                     </svg>
                 </div>
+
+                {/* Green overlay that rises and expands */}
+                <div ref={greenOverlayRef} className="pointer-events-none" />
             </div>
         </div>
     );
