@@ -13,6 +13,7 @@ export default function VideoMaskTransition() {
     const textMaskRef = useRef(null);
     const maskedVideoRef = useRef(null);
     const greenOverlayRef = useRef(null);
+    const greenTextRef = useRef(null);
     const nextSectionRef = useRef(null);
 
     useEffect(() => {
@@ -29,7 +30,8 @@ export default function VideoMaskTransition() {
         if (greenOverlay) {
             gsap.set(greenOverlay, {
                 position: 'absolute',
-                backgroundColor: '#88CE02',
+                // project-friendly green (Tailwind green-700 tone)
+                backgroundColor: '#808080',
                 bottom: 0,
                 height: '0vh',
                 left: '5vw',
@@ -41,11 +43,18 @@ export default function VideoMaskTransition() {
             });
         }
 
+        // prepare green overlay text initial state
+        const greenText = greenTextRef.current;
+        if (greenText) {
+            const words = greenText.querySelectorAll('.split-word');
+            gsap.set(words, { autoAlpha: 0, y: 30 });
+        }
+
         const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: container,
                 start: "top top",
-                                end: "+=120%",
+                end: "+=120%",
                 scrub: 1,
                 pin: true,
                 anticipatePin: 1,
@@ -68,9 +77,7 @@ export default function VideoMaskTransition() {
             duration: 0.5,
             ease: "power2.inOut"
         }, 0.3)
-        // Ensure we start the green entrance only after AVITEC is fully shown
         .add('brandShown', 1.35)
-        // Green overlay rises from bottom and expands from 90% to 100% width while mask fades
         .to(maskedVideo, {
             opacity: 0,
             duration: 1,
@@ -85,13 +92,35 @@ export default function VideoMaskTransition() {
             ease: 'none'
         }, 'brandShown');
 
+        // Animate words in with a stagger
+        if (greenText) {
+            const words = greenText.querySelectorAll('.split-word');
+            tl.to(words, {
+                autoAlpha: 1,
+                y: 0,
+                duration: 0.8,
+                ease: 'power3.out',
+                stagger: 0.05,
+            }, 'brandShown+=0.2')
+            .to(words, {
+                autoAlpha: 0,
+                y: -15,
+                duration: 0.4,
+                ease: 'power2.in',
+                stagger: 0.03,
+            }, 'brandShown+=1.2');
+        }
+
         return () => ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     }, []);
+
+    const headline = "Forging the Future of Digital Interaction";
+    const paragraph = "We blend cutting-edge technology with visionary design to create immersive web experiences that captivate and inspire.";
 
     return (
         <div className="relative">
             <div ref={containerRef} className="h-screen relative overflow-hidden bg-black">
-                {/* Background Video */}
+                {/* ... video and mask elements ... */}
                 <video
                     ref={backgroundVideoRef}
                     className="absolute inset-0 w-full h-full object-cover z-0"
@@ -139,8 +168,27 @@ export default function VideoMaskTransition() {
                     </svg>
                 </div>
 
-                {/* Green overlay that rises and expands */}
-                <div ref={greenOverlayRef} className="pointer-events-none" />
+                {/* Gray overlay that rises and expands */}
+                <div ref={greenOverlayRef} className="pointer-events-none overflow-hidden">
+                    <div ref={greenTextRef} className="w-full h-full flex items-center justify-center">
+                        <div className="text-white text-center max-w-4xl mx-auto px-4">
+                            <h2 className="text-5xl md:text-7xl font-bold">
+                                {headline.split(" ").map((word, index) => (
+                                    <span key={index} className="inline-block overflow-hidden">
+                                        <span className="inline-block split-word">{word}&nbsp;</span>
+                                    </span>
+                                ))}
+                            </h2>
+                            <p className="mt-6 text-xl md:text-2xl text-gray-300">
+                                {paragraph.split(" ").map((word, index) => (
+                                    <span key={index} className="inline-block overflow-hidden">
+                                        <span className="inline-block split-word">{word}&nbsp;</span>
+                                    </span>
+                                ))}
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
