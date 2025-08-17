@@ -10,9 +10,7 @@ import image7 from '../../public/img7.jpg'
 import image8 from '../../public/img8.jpg'
 import image9 from '../../public/img9.jpg'
 import image10 from '../../public/img10.jpg'
-import { Plus_Jakarta_Sans } from 'next/font/google';
 import Lenis from '@studio-freight/lenis';
-const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], weight: ['400','500','600','700','800'], display: 'swap' });
 
 // Mock images for demo
 const slides = [
@@ -44,7 +42,7 @@ const Scroll = () => {
   const imageContainerRef = useRef(null);
   const navigationRef = useRef(null);
   const progressBarRef = useRef(null);
-  const spotlightRef = useRef(null); 
+  const spotlightRef = useRef(null);
   const skipButtonRef = useRef(null);
   const navVisible = useRef(false);
   const stRef = useRef(null);
@@ -85,10 +83,10 @@ const Scroll = () => {
   useEffect(() => {
     if (isMobile) return;
     const lenis = new Lenis({
-      lerp: 0.11,
+      lerp: 0.1, // MODIFIED: Adjusted for a slightly smoother feel
       smoothWheel: true,
       smoothTouch: false,
-      wheelMultiplier: 0.6,
+      wheelMultiplier: 1.0, // MODIFIED: Increased for better responsiveness
       touchMultiplier: 0.9,
       normalizeWheel: true,
       syncTouch: true,
@@ -150,7 +148,7 @@ const Scroll = () => {
 
   const handleTagClick = (slideId) => {
     if (isMobile) return; // Disable click navigation on mobile
-    
+
     const st = stRef.current;
     if (!st) return;
 
@@ -160,11 +158,9 @@ const Scroll = () => {
     // Map to the image phase [heroEnd,imageEnd]
     const heroEnd = 0.38;
     const imageEnd = 0.86;
-    // Aim near the visual center: bias edges slightly inward
     const total = slides.length - 1;
-    let normalized = slideIndex / total; // 0..1
-    if (slideIndex === 0) normalized = 0.22; // center-ish of first
-    else if (slideIndex === total) normalized = 0.78; // center-ish of last
+    // Calculate the exact normalized progress for the target slide
+    const normalized = slideIndex / total;
     const targetProgress = heroEnd + normalized * (imageEnd - heroEnd);
     const targetScrollY = st.start + targetProgress * (st.end - st.start);
 
@@ -177,7 +173,7 @@ const Scroll = () => {
 
   const handleThumbnailClick = (slideIndex) => {
     if (isMobile) return;
-    
+
     const st = stRef.current;
     if (!st) return;
 
@@ -185,11 +181,10 @@ const Scroll = () => {
     const heroEnd = 0.38;
     const imageEnd = 0.86;
     const total = slides.length - 1;
-    let normalized = slideIndex / total;
-    if (slideIndex === 0) normalized = 0.22;
-    else if (slideIndex === total) normalized = 0.78;
+    // Calculate the exact normalized progress for the target slide
+    const normalized = slideIndex / total;
     const targetProgress = heroEnd + normalized * (imageEnd - heroEnd);
-    
+
     const targetScrollY = st.start + targetProgress * (st.end - st.start);
 
     if (lenisRef.current) {
@@ -266,7 +261,7 @@ const Scroll = () => {
       gsap.set(imageContainer, { position: 'absolute', left: '70%', top: 0, width: '30%', height: '100%', zIndex: 2 });
 
       gsap.set([image1Ref.current, image2Ref.current, image3Ref.current], { x: (i) => i === 0 ? '0%' : '100%' });
-      gsap.set([image1Ref.current, image2Ref.current, image3Ref.current].map(ref => ref.querySelector('.slide-image')), { filter: 'none', scale: 1, willChange: 'transform, opacity' });
+      gsap.set([image1Ref.current, image2Ref.current, image3Ref.current].map(ref => ref.querySelector('.slide-image')), { filter: 'none', scale: 1, willChange: 'transform, opacity, filter' });
       gsap.set([overlay1Ref.current, overlay2Ref.current, overlay3Ref.current], { opacity: (i) => i === 0 ? 0.25 : 0.35 });
       gsap.set([text1Ref.current, text2Ref.current, text3Ref.current], { opacity: 0, y: 50 });
       gsap.set([navigation, skipButton], { autoAlpha: 0, visibility: 'hidden', pointerEvents: 'none', willChange: 'transform, opacity, filter' });
@@ -293,7 +288,7 @@ const Scroll = () => {
         scrollTrigger: {
           trigger: componentRef.current,
           pin: true,
-          scrub: 0.4,
+          scrub: 0.2, // MODIFIED: Reduced to make animation more responsive to scroll
           start: 'top top',
           end: '+=420%',
           anticipatePin: 1,
@@ -326,15 +321,16 @@ const Scroll = () => {
               setHeroContentOpacity(1 - heroProgress);
               setImageLeft(70 - 70 * heroProgress);
               setImageWidth(30 + 70 * heroProgress);
-              // remove heavy filter to reduce paint cost
-              // gsap.set(image1Ref.current.querySelector('.slide-image'), { filter: `blur(${8 - 8 * heroProgress}px)` });
+              gsap.set(image1Ref.current.querySelector('.slide-image'), { filter: `blur(${8 - 8 * heroProgress}px)` });
               gsap.set(image2Ref.current, { x: '100%' });
               gsap.set([text1Ref.current, text2Ref.current, text3Ref.current], { opacity: 0, y: 50 });
 
               // Updated scroll indicator logic
               if (scrollIndicatorRef.current) {
-                // Fade out based on hero progress proportionally
-                const scrollIndicatorOpacity = heroProgress <= 0.58 ? 1 : Math.max(0, 1 - ((heroProgress - 0.58) / 0.21));
+                // Increased visibility duration. Fades out in the last 20% of the hero phase.
+                const startFadeProgress = 0.80;
+                const fadeDuration = 0.20;
+                const scrollIndicatorOpacity = heroProgress <= startFadeProgress ? 1 : Math.max(0, 1 - ((heroProgress - startFadeProgress) / fadeDuration));
                 const xMovement = -70 * heroProgress;
                 // Update the arrow reveal effect
                 const arrowLine = scrollIndicatorRef.current.querySelector('.arrow-line');
@@ -380,35 +376,43 @@ const Scroll = () => {
                 let opacity = 0;
                 let y = 60;
                 let scale = 0.95;
-                
+
+                // Handles fade-out for the current text after it has been visible
                 if (index === currentSlide) {
-                    // Current text fades out later and slower - starts at 50% progress
                     const fadeOutProgress = slideTransitionProgress > 0.5 ? Math.min(1, (slideTransitionProgress - 0.5) / 0.5) : 0;
-                    opacity = 1 - gsap.utils.interpolate(0, 1, gsap.parseEase("power2.out")(fadeOutProgress));
+                    opacity = 1 - gsap.parseEase("power2.out")(fadeOutProgress);
                     y = 60 * gsap.parseEase("power2.in")(fadeOutProgress);
                     scale = 1 - (0.05 * gsap.parseEase("power1.out")(fadeOutProgress));
                 }
-                
+
+                // Handles fade-in for the upcoming text
                 if (index === currentSlide + 1 && slideTransitionProgress > 0.6) {
-                    // Next text fades in even later - starts at 60% progress
                     const fadeInProgress = Math.min(1, (slideTransitionProgress - 0.6) / 0.4);
-                    opacity = gsap.utils.interpolate(0, 1, gsap.parseEase("power2.out")(fadeInProgress));
+                    opacity = gsap.parseEase("power2.out")(fadeInProgress);
                     y = 60 * (1 - gsap.parseEase("power2.out")(fadeInProgress));
                     scale = 0.95 + (0.05 * gsap.parseEase("back.out(1.2)")(fadeInProgress));
                 }
-                
+
+                // FIX: Specific override to animate the FIRST text element IN
+                if (index === 0 && currentSlide === 0 && slideTransitionProgress < 0.5) {
+                    const fadeInProgress = slideTransitionProgress / 0.5; // Normalized 0-1 for the first half
+                    opacity = gsap.parseEase("power2.out")(fadeInProgress);
+                    y = 60 * (1 - gsap.parseEase("power2.out")(fadeInProgress));
+                    scale = 0.95 + (0.05 * gsap.parseEase("back.out(1.2)")(fadeInProgress));
+                }
+
                 opacity = gsap.utils.clamp(0, 1, opacity);
                 y = gsap.utils.clamp(0, 60, y);
                 scale = gsap.utils.clamp(0.95, 1, scale);
-                
-                gsap.set(textRef.current, { 
-                  opacity: opacity, 
+
+                gsap.set(textRef.current, {
+                  opacity: opacity,
                   y: y,
                   scale: scale,
                   rotationX: y * 0.3,
                   transformOrigin: "center bottom"
                 });
-                
+
                 if (textRef.current) {
                   const title = titles[index];
                   const paragraph = paragraphs[index];
@@ -424,20 +428,20 @@ const Scroll = () => {
               if (currentSlide === 0) {
                   gsap.set(image2Ref.current, { x: `${100 - 100 * easedSlide}%` });
                   gsap.set(image3Ref.current, { x: '100%' });
-                  // remove heavy filter to reduce paint cost
-                  // gsap.set(image1Ref.current.querySelector('.slide-image'), { filter: `blur(${8 * easedSlide}px)` });
-                  // gsap.set(image2Ref.current.querySelector('.slide-image'), { filter: `blur(${8 * (1 - easedSlide)}px)` });
-                                     // Fade-in effect for incoming slide
+                  // MODIFIED: Re-enabled blur effect for image transitions
+                  gsap.set(image1Ref.current.querySelector('.slide-image'), { filter: `blur(${8 * easedSlide}px)` });
+                  gsap.set(image2Ref.current.querySelector('.slide-image'), { filter: `blur(${8 * (1 - easedSlide)}px)` });
+                   // Fade-in effect for incoming slide
                    gsap.set(overlay1Ref.current, { opacity: 0.35 * (1 - easedSlide) });
                    gsap.set(overlay2Ref.current, { opacity: 0.35 + (0.35 * (1 - easedSlide)) });
               } else if (currentSlide === 1) {
                   gsap.set(image1Ref.current, { x: '0%' });
                   gsap.set(image2Ref.current, { x: '0%' });
                   gsap.set(image3Ref.current, { x: `${100 - 100 * easedSlide}%` });
-                  // remove heavy filter to reduce paint cost
-                  // gsap.set(image2Ref.current.querySelector('.slide-image'), { filter: `blur(${8 * easedSlide}px)` });
-                  // gsap.set(image3Ref.current.querySelector('.slide-image'), { filter: `blur(${8 * (1 - easedSlide)}px)` });
-                                     // Fade-in effect for incoming slide
+                  // MODIFIED: Re-enabled blur effect for image transitions
+                  gsap.set(image2Ref.current.querySelector('.slide-image'), { filter: `blur(${8 * easedSlide}px)` });
+                  gsap.set(image3Ref.current.querySelector('.slide-image'), { filter: `blur(${8 * (1 - easedSlide)}px)` });
+                   // Fade-in effect for incoming slide
                    gsap.set(overlay2Ref.current, { opacity: 0.35 * (1 - easedSlide) });
                    gsap.set(overlay3Ref.current, { opacity: 0.35 + (0.35 * (1 - easedSlide)) });
               } else {
@@ -448,17 +452,17 @@ const Scroll = () => {
               }
 
               if (progressBarRef.current && spotlightRef.current) {
-                const thumbnailWidth = 180;
+                const thumbnailWidth = 270;
                 const thumbnailGap = 16;
                 const maxTravelDistance = (slides.length - 1) * (thumbnailWidth + thumbnailGap);
                 const currentX = imageProgress * maxTravelDistance;
-                
+
                 gsap.set(progressBarRef.current, { x: currentX });
 
                 const trackWidth = (slides.length * thumbnailWidth) + ((slides.length - 1) * thumbnailGap);
                 const leftInset = currentX;
                 const rightInset = trackWidth - (currentX + thumbnailWidth);
-                
+
                 gsap.set(spotlightRef.current, { clipPath: `inset(0px ${rightInset}px 0px ${leftInset}px)` });
               }
             }
@@ -479,12 +483,12 @@ const Scroll = () => {
               gsap.set(image3Ref.current, { x: '0%' });
               gsap.set(image3Ref.current.querySelector('.slide-image'), { filter: 'blur(0px)' });
               gsap.set(overlay3Ref.current, { opacity: 0 });
-              
+
               // Keep third text visible with enhanced animation
               gsap.set(text1Ref.current, { opacity: 0, y: 60, scale: 0.95 });
               gsap.set(text2Ref.current, { opacity: 0, y: 60, scale: 0.95 });
               gsap.set(text3Ref.current, { opacity: 1, y: 0, scale: 1, rotationX: 0, filter: 'blur(0px)' });
-              
+
               if (text3Ref.current) {
                 const title = titles[2];
                 const paragraph = paragraphs[2];
@@ -493,7 +497,7 @@ const Scroll = () => {
               }
 
               if (progressBarRef.current && spotlightRef.current) {
-                const thumbnailWidth = 180;
+                const thumbnailWidth = 270;
                 const thumbnailGap = 16;
                 const maxTravelDistance = (slides.length - 1) * (thumbnailWidth + thumbnailGap);
                 gsap.set(progressBarRef.current, { x: maxTravelDistance });
@@ -520,11 +524,11 @@ const Scroll = () => {
   // Mobile Layout
   if (isMobile) {
     return (
-      <div className={`${jakarta.className} bg-[#262836] min-h-screen`}>
+      <div className="bg-[#262836] min-h-screen">
         {/* Mobile Hero Section */}
         <div className="px-6 py-12 text-white">
           <h1 className="text-4xl font-bold mb-8 leading-tight">
-            AVITEC is the 
+            AVITEC is the
             <br />
             <span className="font-normal">Engineering</span>
             <br />
@@ -570,16 +574,16 @@ const Scroll = () => {
 
   // Desktop Layout
   return (
-    <div ref={componentRef} className={`${jakarta.className} relative overflow-hidden bg-[#262836]`}>
+    <div ref={componentRef} className={`relative overflow-hidden bg-[#262836]`}>
       <div className="h-screen w-screen overflow-hidden relative">
         {/* Hero Section */}
         <section ref={heroSectionRef} className="flex flex-col md:flex-row text-white">
           <div ref={heroBackgroundRef} className="absolute inset-0 bg-[#262836]"></div>
-          
+
           <div ref={heroContentRef} className="relative flex-1 flex justify-between items-center px-8 md:px-12 py-8 md:py-25 z-10">
             <div className="flex flex-col justify-center flex-1">
               <h1 className="text-5xl md:text-6xl font-bold mb-8 md:mb-12 leading-tight tracking-wide">
-                AVITEC is the 
+                AVITEC is the
                 <br />
                 <span className="font-normal">Engineering</span>
                 <br />
@@ -634,17 +638,17 @@ const Scroll = () => {
         </div>
 
         {/* Skip Section Button */}
-        <div 
-          ref={skipButtonRef} 
+        <div
+          ref={skipButtonRef}
           className="fixed max-sm:hidden bottom-4 md:bottom-8 right-4 md:right-8 z-50 opacity-0"
         >
-          <button 
+          <button
             onClick={handleSkipSection}
             className="group cursor-pointer relative overflow-hidden top-8 left-8 bg-white/90 border border-white/20 text-black px-10 py-7 rounded-none font-medium inline-flex items-center gap-2  transition-all duration-300 hover:scale-105 hover:text-white"
           >
             {/* Animated background fill */}
             <span className="absolute inset-0 bg-black/90 transform -translate-x-full transition-transform duration-700 ease-out group-hover:translate-x-0 rounded-none"></span>
-            
+
             {/* Button content */}
             <span className="relative text-lg font-bold">Skip Section</span>
             <ChevronDown className="w-4 h-4 relative transform group-hover:rotate-180 transition-transform duration-300" />
@@ -668,27 +672,27 @@ const Scroll = () => {
         </div>
 
         {/* Navigation Bar */}
-        <div ref={navigationRef} className="fixed bottom-4 md:bottom-8 left-4 md:left-8 z-50 opacity-0 px-4 md:px-0">
+        <div ref={navigationRef} className="fixed bottom-8 md:bottom-12 left-4 md:left-12 z-50 opacity-0 px-4 md:px-0">
           <div className="relative mb-4 md:mb-6">
             <div className="w-full h-1 bg-gradient-to-r from-black/20 via-black/40 to-black/20 shadow-2xl"></div>
-            <div ref={progressBarRef} className="absolute top-0 left-0 h-1 bg-purple-500 shadow-lg shadow-blue-500/50" style={{ width: '180px' }}></div>
+            <div ref={progressBarRef} className="absolute top-0 left-0 h-1 bg-purple-500 shadow-lg shadow-blue-500/50" style={{ width: '270px' }}></div>
           </div>
-          <div className="flex gap-2 md:gap-4 relative overflow-hidden">
+          <div className="flex gap-4 md:gap-6 relative overflow-hidden">
             {/* The base thumbnails (less visible) */}
             {slides.map((slide, i) => (
               <div
                 key={i}
-                className={`overflow-hidden rounded-none transition-all duration-500 relative z-10 cursor-pointer hover:scale-110 flex-shrink-0 border-gray-400/30 opacity-60 hover:opacity-80`}
+                className={`overflow-hidden rounded-none transition-all duration-500 relative z-10 cursor-pointer flex-shrink-0 border-gray-400/30 opacity-100`}
                 style={{
-                  width: '180px',
-                  height: '120px'
+                  width: '270px',
+                  height: '150px'
                 }}
                 ref={el => baseThumbRefs.current[i] = el}
                 onClick={() => handleThumbnailClick(i)}>
                 <Image src={slide.image} alt={`thumbnail-${i}`} fill style={{ objectFit: 'cover' }} />
                 <div className="absolute inset-0 bg-black/50"></div>
                 <div className="absolute bottom-1 md:bottom-2 left-1 md:left-2 right-1 md:right-2">
-                  <p className="text-white text-xs md:text-sm font-semibold truncate">{slide.text}</p>
+                  <p className="text-white text-sm md:text-base font-bold truncate">{slide.text}</p>
                 </div>
                 <div
                   ref={el => baseBorderRefs.current[i] = el}
@@ -701,16 +705,14 @@ const Scroll = () => {
               ref={spotlightRef}
               className="absolute top-0 left-0 w-full h-full pointer-events-none z-20 overflow-hidden"
             >
-              <div
-                className="w-full h-full flex gap-2 md:gap-4"
-              >
+              <div className="w-full h-full flex gap-4 md:gap-6">
                 {slides.map((slide, i) => (
                   <div
                     key={`spotlight-${i}`}
                     className="rounded-none shadow-2xl bg-white/[.20] backdrop-blur-sm backdrop-saturate-150 flex-shrink-0 relative"
                     style={{
-                      width: '180px',
-                      height: '120px'
+                      width: '270px',
+                      height: '150px'
                     }}
                     ref={el => glassThumbRefs.current[i] = el}
                   >

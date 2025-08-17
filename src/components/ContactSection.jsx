@@ -46,7 +46,7 @@ const AvitecFooter = () => {
 
   return (
     <>
-      <footer className="bg-black text-white pt-24 pb-12 px-4 sm:px-8 md:px-16 relative z-0">
+      <footer className="bg-black text-white pt-24 pb-12 px-4 sm:px-8 md:px-16 relative z-0 ">
         <div className="max-w-screen-2xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
             <div className="md:col-span-6">
@@ -131,7 +131,7 @@ const SuggestionForm = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 p-8">
+        <div className="min-h-screen flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 p-8 font-satoshi">
             <div ref={iconContainerRef} className="w-full md:w-2/5 h-96 md:h-[600px]">
                 <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-gray-400">Loading 3D Icon...</div>}>
                     <Canvas camera={{ position: [0, 0, 4], fov: 50 }}>
@@ -161,7 +161,7 @@ const SuggestionForm = () => {
 // === Example Page Component to Demonstrate the Effect ===
 export default function ContactSection() {
   return (
-    <div className="bg-white">
+    <div className="bg-white font-satoshi">
       <main className="relative bg-white z-10">
         <SuggestionForm />
         <div className="h-12"></div> {/* Spacer to ensure footer reveal is smooth */}

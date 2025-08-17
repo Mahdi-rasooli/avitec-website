@@ -1,16 +1,17 @@
-import ScrollHeader from "@/components/header";
-import VideoMaskTransition from "@/components/MaskVideo";
 import Scroll from "@/components/refinedHeroScroll";
-import WorkSection from "@/components/workSection";
-import SecondCompo from "@/components/secondCompo";
+import BeliefSection from "@/components/imagesGallery";
+import SecondCompo from '@/components/secondCompo'
 import ContactSection from "@/components/ContactSection";
+import VideoMaskTransition from "@/components/MaskVideo";
 
 export default function Home() {
   return (
     <div>
-      <ScrollHeader />
+      {/* <ScrollHeader /> */}
       <Scroll />
-      <VideoMaskTransition />
+      <BeliefSection />
+      {/* <ModernGalleryCarousel /> */}
+      {/* <VideoMaskTransition /> */}
       {/* <WorkSection /> */}
       <SecondCompo />
       <ContactSection />
