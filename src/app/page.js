@@ -4,6 +4,7 @@ import SecondCompo from '@/components/ScrollPinnedCards'
 import ContactSection from "@/components/ContactSection";
 import VideoMaskTransition from "@/components/MaskVideo";
 import MaskVideo from "@/components/testMaskVideo";
+import HomeSections from "@/components/overlayWrapper";
 
 export default function Home() {
   return (
@@ -11,11 +12,12 @@ export default function Home() {
       {/* <ScrollHeader /> */}
       <Scroll />
       <BeliefSection />
+      {/* <HomeSections /> */}
       {/* <ModernGalleryCarousel /> */}
-      {/* <MaskVideo /> */}
       <VideoMaskTransition />
       {/* <WorkSection /> */}
       <SecondCompo />
+      {/* <MaskVideo /> */}
       <ContactSection />
     </div>
   );

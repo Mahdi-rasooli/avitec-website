@@ -2,58 +2,39 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ArrowUp } from 'lucide-react'; // Assuming you're using lucide-react for the icon
 
 gsap.registerPlugin(ScrollTrigger);
 
-
+// You'll need to define these components or replace them with standard HTML elements
+const SectionTitle = ({ children }) => <h3 className="text-xl font-semibold mb-4 text-gray-400">{children}</h3>;
+const AnimatedLink = ({ children, href }) => <a href={href} className="text-gray-300 hover:text-white transition-colors duration-300">{children}</a>;
 
 export default function MaskVideo() {
     const containerRef = useRef(null);
     const backgroundVideoRef = useRef(null);
     const textMaskRef = useRef(null);
     const maskedVideoRef = useRef(null);
-    const greenOverlayRef = useRef(null);
-    const greenTextRef = useRef(null);
-    const nextSectionRef = useRef(null);
+    const footerRef = useRef(null); // <-- Ref for the footer
+
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     useEffect(() => {
         const container = containerRef.current;
         const backgroundVideo = backgroundVideoRef.current;
         const textMask = textMaskRef.current;
         const maskedVideo = maskedVideoRef.current;
-        const greenOverlay = greenOverlayRef.current;
+        const footerEl = footerRef.current;
 
         // Initial states
         gsap.set(maskedVideo, { opacity: 0 });
         gsap.set(textMask, { scale: 6, opacity: 0, transformOrigin: "center center" });
-        // Green overlay starts at bottom with 0 height and 90% width, then grows up to fill
-        if (greenOverlay) {
-            // use the overlay as a black fade-to-cover element
-            gsap.set(greenOverlay, {
-                position: 'absolute',
-                backgroundColor: '#000',
-                autoAlpha: 0,
-                bottom: 0,
-                height: '0vh',
-                left: '5vw',
-                right: '5vw',
-                borderRadius: 12,
-                zIndex: 40,
-                transformOrigin: 'bottom center',
-                willChange: 'height,left,right,border-radius,opacity'
-            });
-        }
-        // prepare the footer (from ContactSection) to slide up
-        const footerEl = typeof document !== 'undefined' ? document.getElementById('site-footer') : null;
+
+        // Prepare the footer to slide up
         if (footerEl) {
             gsap.set(footerEl, { y: '100%', force3D: true });
-        }
-
-        // prepare green overlay text initial state
-        const greenText = greenTextRef.current;
-        if (greenText) {
-            const words = greenText.querySelectorAll('.split-word');
-            gsap.set(words, { autoAlpha: 0, y: 30 });
         }
 
         const tl = gsap.timeline({
@@ -89,122 +70,103 @@ export default function MaskVideo() {
             duration: 1,
             ease: 'none'
         }, 'brandShown')
-        // expand overlay to cover the screen (fade to black)
-        .to(greenOverlay, {
-            height: '100vh',
-            left: '0vw',
-            right: '0vw',
-            borderRadius: 0,
-            duration: 0.8,
-            ease: 'power2.out',
-            autoAlpha: 1
-        }, 'brandShown')
-        // after overlay has covered, slide the footer up from bottom
-        .to(footerEl || {}, {
+        // After the masked video fades, slide the footer up from the bottom
+        .to(footerEl, {
             y: '0%',
             duration: 0.9,
             ease: 'power2.out'
-        }, 'brandShown+=0.7');
-
-        // Animate words in with a stagger
-        if (greenText) {
-            const words = greenText.querySelectorAll('.split-word');
-            // keep existing text animation but leave timing as-is in case overlay/text interplay is desired
-            tl.to(words, {
-                autoAlpha: 1,
-                y: 0,
-                duration: 0.8,
-                ease: 'power3.out',
-                stagger: 0.05,
-            }, 'brandShown+=0.2')
-            .to(words, {
-                autoAlpha: 0,
-                y: -15,
-                duration: 0.4,
-                ease: 'power2.in',
-                stagger: 0.03,
-            }, 'brandShown+=1.2');
-        }
+        }, 'brandShown+=0.2'); // Adjusted timing for a smooth transition
 
         return () => ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     }, []);
 
-    const headline = "Forging the Future of Digital Interaction";
-    const paragraph = "We blend cutting-edge technology with visionary design to create immersive web experiences that captivate and inspire.";
-
     return (
-        <div className="relative">
-            <div ref={containerRef} className="h-screen relative overflow-hidden bg-black">
-                {/* ... video and mask elements ... */}
-                <video
-                    ref={backgroundVideoRef}
-                    className="absolute inset-0 w-full h-full object-cover z-0"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                >
-                    <source src="/video2.mp4" type="video/mp4" />
-                </video>
+        <div ref={containerRef} className="h-screen relative overflow-hidden bg-black">
+            {/* Background Video */}
+            <video
+                ref={backgroundVideoRef}
+                className="absolute inset-0 w-full h-full object-cover z-0"
+                autoPlay
+                loop
+                muted
+                playsInline
+            >
+                <source src="/video2.mp4" type="video/mp4" />
+            </video>
 
-                {/* Masked Video inside AVITEC */}
-                <div ref={maskedVideoRef} className="absolute inset-0 z-10">
-                    <svg className="w-full h-full">
-                        <defs>
-                            <mask id="avitec-text-mask">
-                                <rect width="100%" height="100%" fill="black" />
-                                <text
-                                    ref={textMaskRef}
-                                    x="50%"
-                                    y="50%"
-                                    textAnchor="middle"
-                                    dominantBaseline="central"
-                                    fill="white"
-                                    fontSize="22vw"
-                                    fontWeight="900"
-                                    fontFamily="Arial Black, sans-serif"
-                                    style={{ transformOrigin: 'center center', transformBox: 'fill-box' }}
-                                >
-                                    AVITEC
-                                </text>
-                            </mask>
-                        </defs>
-                        <foreignObject width="100%" height="100%" mask="url(#avitec-text-mask)">
-                            <video
-                                className="w-full h-full object-cover"
-                                autoPlay
-                                muted
-                                loop
-                                playsInline
+            {/* Masked Video */}
+            <div ref={maskedVideoRef} className="absolute inset-0 z-10">
+                <svg className="w-full h-full">
+                    <defs>
+                        <mask id="avitec-text-mask">
+                            <rect width="100%" height="100%" fill="black" />
+                            <text
+                                ref={textMaskRef}
+                                x="50%"
+                                y="50%"
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                fill="white"
+                                fontSize="22vw"
+                                fontWeight="900"
+                                fontFamily="Arial Black, sans-serif"
+                                style={{ transformOrigin: 'center center', transformBox: 'fill-box' }}
                             >
-                                <source src="/video2.mp4" type="video/mp4" />
-                            </video>
-                        </foreignObject>
-                    </svg>
-                </div>
+                                AVITEC
+                            </text>
+                        </mask>
+                    </defs>
+                    <foreignObject width="100%" height="100%" mask="url(#avitec-text-mask)">
+                        <video
+                            className="w-full h-full object-cover"
+                            autoPlay
+                            muted
+                            loop
+                            playsInline
+                        >
+                            <source src="/video2.mp4" type="video/mp4" />
+                        </video>
+                    </foreignObject>
+                </svg>
+            </div>
 
-                {/* Gray overlay that rises and expands */}
-                <div ref={greenOverlayRef} className="pointer-events-none overflow-hidden">
-                    <div ref={greenTextRef} className="w-full h-full flex items-center justify-center">
-                        <div className="text-white text-center max-w-4xl mx-auto px-4">
-                            <h2 className="text-5xl md:text-7xl font-bold">
-                                {headline.split(" ").map((word, index) => (
-                                    <span key={index} className="inline-block overflow-hidden">
-                                        <span className="inline-block split-word">{word}&nbsp;</span>
-                                    </span>
-                                ))}
-                            </h2>
-                            <p className="mt-6 text-xl md:text-2xl text-gray-300">
-                                {paragraph.split(" ").map((word, index) => (
-                                    <span key={index} className="inline-block overflow-hidden">
-                                        <span className="inline-block split-word">{word}&nbsp;</span>
-                                    </span>
-                                ))}
-                            </p>
+            {/* The footer that will be animated */}
+            <footer ref={footerRef} className="bg-black text-white pt-24 pb-12 px-4 sm:px-8 md:px-16 absolute bottom-0 left-0 w-full z-20">
+                <div className="max-w-screen-2xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
+                        <div className="md:col-span-6">
+                            <h1 className="text-8xl sm:text-9xl md:text-[10rem] lg:text-[12rem] font-bold tracking-tighter leading-none relative right-40 bottom-20">AVITEC</h1>
+                        </div>
+                        <div className="md:col-span-3">
+                            <SectionTitle>Contact</SectionTitle>
+                            <div className="flex flex-col space-y-2 text-lg">
+                                <p className="font-semibold">Avitec contact</p>
+                                <p className="text-gray-400">123 AVITEC<br />Tehran City, Vanak</p>
+                                <p className="text-gray-400">+1 (234) 567-8900</p>
+                                <AnimatedLink href="mailto:hello@avitec.com">info@avitec.com</AnimatedLink>
+                            </div>
+                        </div>
+                        <div className="md:col-span-3">
+                            <SectionTitle>Links</SectionTitle>
+                            <div className="flex flex-col space-y-2 text-lg">
+                                <AnimatedLink>Instagram</AnimatedLink>
+                                <AnimatedLink>LinkedIn</AnimatedLink>
+                                <AnimatedLink>Newsletter</AnimatedLink>
+                                <div className="pt-4">
+                                    <p>Privacy Policy</p>
+                                    <p>Terms & Conditions</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                    <div className="mt-24 flex justify-between items-end relative right-40">
+                        <p className="text-lg text-gray-400 max-w-sm">The Leading Technical and Commercial <br/>Company of Energy Develop Avin</p>
+                        <button onClick={scrollToTop} className="border border-gray-500 rounded-full p-3 hover:bg-white hover:text-black transition-colors duration-300 ease-in-out" aria-label="Scroll to top">
+                            <ArrowUp size={24} />
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </footer>
         </div>
     );
 }

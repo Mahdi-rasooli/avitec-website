@@ -4,6 +4,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowUp } from 'lucide-react';
+import Image from 'next/image';
 
 // Register GSAP's ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -40,22 +41,25 @@ const AvitecFooter = () => {
   
   const SectionTitle = ({ children }) => (
     <div className="inline-block mb-4">
-      <span className="text-xs border border-gray-500 rounded-full px-3 py-1 text-gray-400">{children}</span>
+      <span className="text-lg border border-gray-100 rounded-full px-4 py-2 text-white">{children}</span>
     </div>
   );
 
   return (
     <>
       <footer className="bg-black text-white pt-24 pb-12 px-4 sm:px-8 md:px-16 relative z-0 ">
-        <div className="max-w-screen-2xl mx-auto">
+        <div className="w-full mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
             <div className="md:col-span-6">
-              <h1 className="text-8xl sm:text-9xl md:text-[10rem] lg:text-[12rem] font-bold tracking-tighter leading-none relative right-40 bottom-20">AVITEC</h1>
+              <h1 className="text-8xl sm:text-9xl md:text-[8rem] lg:text-[12rem] font-bold tracking-tighter leading-none relative md:right-20 md:bottom-20 lg:right-6 lg:bottom-20 bg-gradient-to-b from-[#ba2f29] via-[#7b1f26] to-[#6d1b24] bg-[length:200%_200%] animate-gradient bg-clip-text text-transparent">
+                AVITEC
+              </h1>
+              {/* <Image src='https://avitec.ir/wp-content/uploads/2022/11/logo-avitec2020n.png' width={300} height={180} className='bottom-30 right-150'/> */}
             </div>
             <div className="md:col-span-3">
                <SectionTitle>Contact</SectionTitle>
               <div className="flex flex-col space-y-2 text-lg">
-                <p className="font-semibold">Avitec contact</p>
+                <p className="font-semibold">AVITEC contact</p>
                 <p className="text-gray-400">123 AVITEC<br />Tehran City, Vanak</p>
                 <p className="text-gray-400">+1 (234) 567-8900</p>
                 <AnimatedLink href="mailto:hello@avitec.com">info@avitec.com</AnimatedLink>
@@ -67,16 +71,16 @@ const AvitecFooter = () => {
                 <AnimatedLink>Instagram</AnimatedLink>
                 <AnimatedLink>LinkedIn</AnimatedLink>
                 <AnimatedLink>Newsletter</AnimatedLink>
-                <div className="pt-4">
+                <div className="pt-4 cursor-pointer text-white hover:text-gray-400 transition-all ease-in-out duration-200">
                     <p>Privacy Policy</p>
                     <p>Terms & Conditions</p>
                 </div>
               </div>
             </div>
           </div>
-          <div className="mt-24 flex justify-between items-end relative right-40">
+          <div className="mt-24 flex justify-between items-end relative right-0">
             <p className="text-lg text-gray-400 max-w-sm">The Leading Technical and Commercial <br/>Company of Energy Develop Avin</p>
-            <button onClick={scrollToTop} className="border border-gray-500 rounded-full p-3 hover:bg-white hover:text-black transition-colors duration-300 ease-in-out" aria-label="Scroll to top">
+            <button onClick={scrollToTop} className="border border-gray-500 cursor-pointer rounded-full p-3 hover:bg-white hover:text-black transition-colors duration-300 ease-in-out" aria-label="Scroll to top">
               <ArrowUp size={24} />
             </button>
           </div>
@@ -161,7 +165,7 @@ const SuggestionForm = () => {
 // === Example Page Component to Demonstrate the Effect ===
 export default function ContactSection() {
   return (
-    <div className="bg-white font-satoshi">
+    <div className="bg-white font-satoshi contact-section">
       <main className="relative bg-white z-10">
         <SuggestionForm />
         <div className="h-12"></div> {/* Spacer to ensure footer reveal is smooth */}

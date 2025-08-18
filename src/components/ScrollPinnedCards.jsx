@@ -34,7 +34,7 @@ const sectionsData = [
     subtitle: "Safety • Craftsmanship • Reliability",
     content: "Our construction teams are committed to safety, quality, and efficiency. We deliver projects on time with exceptional craftsmanship and attention to detail.",
     features: ["Safety First Protocol", "Premium Materials", "Expert Craftsmanship", "Timely Delivery"],
-    img: "https://images.unsplash.com/photo-15033889152951-9f343605f61e?auto=format&fit=crop&w=1600&q=80",
+    img: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1600&q=80",
     stats: { value: "100%", label: "Safety Record" },
     accentColor: "#F59E0B", // Amber
     bgGradient: "from-amber-50 to-orange-50"
@@ -55,6 +55,8 @@ export default function WorkSection() {
       // Set initial states - ALL text and cards start hidden
       gsap.set(".text-element", { autoAlpha: 0, y: 30 });
       gsap.set(titles, { autoAlpha: 0 });
+      // ALL cards start hidden including the first one
+      gsap.set(cards, { clipPath: "polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)" });
 
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -91,24 +93,24 @@ export default function WorkSection() {
           }, "<");
         }
         
-        // 3. Change background color (if it's not the first section)
+        // 3. Change background color to match current section
         if (section.bgGradient) {
-           tl.to(wrapperEl, {
-              className: `wrapper w-full flex overflow-hidden bg-gradient-to-br ${section.bgGradient} transition-colors duration-1000`,
-              duration: 0.5,
-           }, "<");
+          tl.to(wrapperEl, {
+            className: `wrapper w-full flex overflow-hidden bg-gradient-to-br ${section.bgGradient}`,
+            duration: 0.5,
+          }, "<");
         }
 
-        // 4. Fade in the CURRENT section's text
-        // FIX 2: Delay the text fade-in to sync better with the image reveal
-        tl.to(title, { autoAlpha: 1 }, "<+0.5") // Delay fade-in
+        // 4. Fade in the CURRENT section's text at the same time as card reveals
+        tl.to(title, { autoAlpha: 1 }, "<") // Start with the card animation
           .to(title.querySelectorAll('.text-element'), {
             autoAlpha: 1,
             y: 0,
             duration: 0.4,
             stagger: 0.08,
             ease: "power2.out"
-          }, "<");
+          }, "<+0.2"); // Small delay for better visual flow
+
       });
 
       // Add a final exit animation for the last piece of text
@@ -127,7 +129,7 @@ export default function WorkSection() {
 
   return (
     <div ref={main} className="w-full">
-      <div className="wrapper w-full flex overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 transition-colors duration-1000">
+      <div className="wrapper w-full flex overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
         <div className="column left relative flex-1 flex justify-center items-center h-screen px-12 lg:px-20">
           {sectionsData.map((section, i) => (
             <div key={section.id} className="left-content absolute opacity-0 invisible w-full max-w-xl">
@@ -161,7 +163,6 @@ export default function WorkSection() {
         </div>
         <div className="column right relative flex-1 flex justify-center items-center h-screen p-12">
           {sectionsData.map((section) => (
-            // FIX 1: ALL cards now start with the hidden clip-path
             <div
               key={section.id}
               className="card absolute w-[400px] h-[500px] rounded-3xl overflow-hidden shadow-2xl group [clip-path:polygon(0%_100%,100%_100%,100%_100%,0_100%)]"

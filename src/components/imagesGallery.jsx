@@ -57,8 +57,8 @@ const CorporateCarousel = () => {
     }
   ];
 
-  const headline = "Forging the Future of Digital Interaction";
-  const paragraph = "We blend cutting-edge technology with visionary design to create immersive web experiences that captivate and inspire.";
+  const headline = "AVITEC works for all the bests";
+  const paragraph = "AVITEC was founded to develop and expand services to Customers in the Energy, Oil, Gas, and Petrochemical industries with a modern, advanced, innovative, and sustainable approach..";
 
   useLayoutEffect(() => {
     const component = componentRef.current;
@@ -85,7 +85,7 @@ const CorporateCarousel = () => {
         }
       );
 
-      // --- FIXED: Green Overlay Animation ---
+      // --- FIXED: gray Overlay Animation ---
       gsap.set(greenOverlay, {
         position: 'absolute',
         backgroundColor: '#ebeeec', // Tailwind green-600
@@ -152,9 +152,9 @@ const CorporateCarousel = () => {
     // CHANGED: Replaced bg-gray-50 with a semi-transparent background and a backdrop blur for the overlay effect.
     <div ref={componentRef} className="relative bg-gray-900/20 backdrop-blur-lg min-h-screen" style={{ zIndex: 10 }}>
       {/* This inner wrapper holds the content and is the element that moves for the parallax effect. */}
-      <div ref={contentWrapperRef} className="py-16 px-6">
+      <div ref={contentWrapperRef} className="py-16 px-20">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-12">
+          <div className="mb-20 mt-20">
             <p className="text-gray-800 text-xs font-medium tracking-wider uppercase mb-6">
               WHAT WE BELIEVE
             </p>
@@ -211,7 +211,7 @@ const CorporateCarousel = () => {
       {/* Green overlay that rises and expands */}
       <div ref={greenOverlayRef} className="pointer-events-none overflow-hidden">
         <div ref={greenTextRef} className="w-full h-full flex items-center justify-center">
-          <div className="text-white text-center max-w-4xl mx-auto px-4">
+          <div className="text-gray-900 text-center max-w-4xl mx-auto px-4">
             <h2 className="text-5xl md:text-7xl font-bold">
               {headline.split(" ").map((word, index) => (
                 <span key={index} className="inline-block overflow-hidden">
@@ -219,7 +219,7 @@ const CorporateCarousel = () => {
                 </span>
               ))}
             </h2>
-            <p className="mt-6 text-xl md:text-2xl text-gray-200">
+            <p className="mt-6 text-xl md:text-2xl text-gray-700">
               {paragraph.split(" ").map((word, index) => (
                 <span key={index} className="inline-block overflow-hidden">
                   <span className="inline-block split-word">{word}&nbsp;</span>

@@ -75,6 +75,10 @@ const Scroll = () => {
 
   const [isMobile, setIsMobile] = useState(false);
 
+  // Shared progress breakpoints (keep consistent across handlers & animation)
+  const HERO_END = 0.34;
+  const IMAGE_END = 0.86;
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     handleResize();
@@ -157,20 +161,32 @@ const Scroll = () => {
 
     const slideIndex = slides.findIndex(slide => slide.id === slideId);
     if (slideIndex === -1) return;
-
-    const heroEnd = 0.38;
-    const imageEnd = 0.86;
     const total = slides.length - 1;
     const normalized = slideIndex / total;
-    const targetProgress = heroEnd + normalized * (imageEnd - heroEnd);
+    const targetProgress = HERO_END + normalized * (IMAGE_END - HERO_END);
     const targetScrollY = st.start + targetProgress * (st.end - st.start);
 
-    // ---- FIX #2: Implemented smooth, soft scrolling ----
+    // Smooth scroll to the computed y-position
     if (lenisRef.current) {
-      lenisRef.current.scrollTo(targetScrollY, { duration: 1.5, easing: easeInOutQuad });
+      lenisRef.current.scrollTo(targetScrollY, { duration: 1.2, easing: easeInOutQuad });
     } else {
-      gsap.to(window, { scrollTo: { y: targetScrollY }, duration: 1.5, ease: 'power2.inOut' });
+      gsap.to(window, { scrollTo: { y: targetScrollY }, duration: 1.2, ease: 'power2.inOut' });
     }
+
+    // Update thumbnail progress/spotlight to match clicked index using actual DOM measurements
+    requestAnimationFrame(() => {
+      const thumbs = baseThumbRefs.current;
+      if (!progressBarRef.current || !spotlightRef.current || !thumbs || !thumbs[0]) return;
+      const thumbWidth = thumbs[0].offsetWidth || 270;
+      const lastIndex = thumbs.length - 1;
+      const trackStart = thumbs[0].offsetLeft || 0;
+      const gap = thumbs[1] ? (thumbs[1].offsetLeft - thumbs[0].offsetLeft - thumbWidth) : 24;
+      const leftInset = slideIndex * (thumbWidth + gap);
+      const trackWidth = (thumbs[lastIndex].offsetLeft || 0) + thumbWidth;
+      const rightInset = Math.max(0, trackWidth - (leftInset + thumbWidth));
+      gsap.set(progressBarRef.current, { x: leftInset });
+      gsap.set(spotlightRef.current, { clipPath: `inset(0px ${rightInset}px 0px ${leftInset}px)` });
+    });
   };
 
   const handleThumbnailClick = (slideIndex) => {
@@ -178,21 +194,30 @@ const Scroll = () => {
 
     const st = stRef.current;
     if (!st) return;
-
-    const heroEnd = 0.38;
-    const imageEnd = 0.86;
     const total = slides.length - 1;
     const normalized = slideIndex / total;
-    const targetProgress = heroEnd + normalized * (imageEnd - heroEnd);
-
+    const targetProgress = HERO_END + normalized * (IMAGE_END - HERO_END);
     const targetScrollY = st.start + targetProgress * (st.end - st.start);
-    
-    // ---- FIX #2: Implemented smooth, soft scrolling ----
+
     if (lenisRef.current) {
-      lenisRef.current.scrollTo(targetScrollY, { duration: 1.5, easing: easeInOutQuad });
+      lenisRef.current.scrollTo(targetScrollY, { duration: 1.2, easing: easeInOutQuad });
     } else {
-      gsap.to(window, { scrollTo: { y: targetScrollY }, duration: 1.5, ease: 'power2.inOut' });
+      gsap.to(window, { scrollTo: { y: targetScrollY }, duration: 1.2, ease: 'power2.inOut' });
     }
+
+    // Update progress bar / spotlight to match selected thumbnail
+    requestAnimationFrame(() => {
+      const thumbs = baseThumbRefs.current;
+      if (!progressBarRef.current || !spotlightRef.current || !thumbs || !thumbs[0]) return;
+      const thumbWidth = thumbs[0].offsetWidth || 270;
+      const lastIndex = thumbs.length - 1;
+      const gap = thumbs[1] ? (thumbs[1].offsetLeft - thumbs[0].offsetLeft - thumbWidth) : 24;
+      const leftInset = slideIndex * (thumbWidth + gap);
+      const trackWidth = (thumbs[lastIndex].offsetLeft || 0) + thumbWidth;
+      const rightInset = Math.max(0, trackWidth - (leftInset + thumbWidth));
+      gsap.set(progressBarRef.current, { x: leftInset });
+      gsap.set(spotlightRef.current, { clipPath: `inset(0px ${rightInset}px 0px ${leftInset}px)` });
+    });
   };
 
   const handleSkipSection = () => {
@@ -341,13 +366,13 @@ const Scroll = () => {
             }
             else if (progress <= imageEnd) {
               const imageProgress = (progress - heroEnd) / (imageEnd - heroEnd);
-              if (scrollIndicatorRef.current) {
-                const fadeOutDuration = 0.07;
-                const newOpacity = imageProgress < fadeOutDuration
-                  ? 1 - (imageProgress / fadeOutDuration)
-                  : 0;
-                gsap.set(scrollIndicatorRef.current, { autoAlpha: newOpacity });
-              }
+              // if (scrollIndicatorRef.current) {
+              //   const fadeOutDuration = 0.07;
+              //   const newOpacity = imageProgress < fadeOutDuration
+              //     ? 1 - (imageProgress / fadeOutDuration)
+              //     : 0;
+              //   gsap.set(scrollIndicatorRef.current, { autoAlpha: newOpacity });
+              // }
 
               gsap.set(heroContent, { opacity: 0 });
               gsap.set(heroBackground, { opacity: 0 });
@@ -594,7 +619,7 @@ const Scroll = () => {
               </button>
             </div>
 
-            <div className="flex flex-col gap-6 md:gap-8 text-lg justify-center px-8 py-12 bg-[#46535e33] min-h-screen w-80 absolute right-0 top-0">
+            <div className="flex flex-col gap-6 md:gap-8 text-lg justify-center px-17 py-12 bg-[#46535e33] min-h-screen w-80 absolute right-0 top-0">
               {['Navigate', 'Engineering', 'Procurement', 'Construction'].map((item, index) => (
                 <div key={item} className="group cursor-pointer" onClick={() => index > 0 && handleTagClick(item.toLowerCase())}>
                   <div className="inline-flex items-center relative">
