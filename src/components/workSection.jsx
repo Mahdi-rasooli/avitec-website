@@ -1,120 +1,128 @@
-'use client'
-import React, { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+"use client";
+import { useEffect } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Dummy Data
 const sectionsData = [
-    {
-        id: 1,
-        title: "Brand Strategy",
-        content: "We define a powerful brand voice and visual identity that resonates with your target audience.",
-        bgColor: "bg-neutral-800",
-    },
-    {
-        id: 2,
-        title: "Web Development",
-        content: "High-performance websites built with modern technologies for speed and scale.",
-        bgColor: "bg-cyan-800",
-    },
-    {
-        id: 3,
-        title: "Mobile Apps",
-        content: "Engaging and intuitive mobile applications for iOS and Android that delight your users.",
-        bgColor: "bg-blue-800",
-    },
+  {
+    id: 1,
+    title: "Engineering",
+    content:
+      "Our engineering services provide innovative solutions for complex challenges. We focus on delivering sustainable and efficient designs that stand the test of time, ensuring your project's success from concept to completion.",
+    img: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1600&q=80",
+  },
+  {
+    id: 2,
+    title: "Procurement",
+    content:
+      "We streamline the procurement process, ensuring timely delivery of high-quality materials and services. Our strategic sourcing and supplier management expertise minimizes costs and risks for your project.",
+    img: "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1600&q=80",
+  },
+  {
+    id: 3,
+    title: "Construction",
+    content:
+      "Our construction teams are committed to safety, quality, and efficiency. We manage every aspect of the construction process to deliver projects on time and within budget, with a focus on craftsmanship and attention to detail.",
+    img: "https://images.unsplash.com/photo-1503389152951-9f343605f61e?auto=format&fit=crop&w=1600&q=80",
+  },
 ];
 
-// Define constants for easy tweaking
-const TITLE_AREA_HEIGHT = 80; // The vertical space each sticky title will occupy
-const CONTENT_HEIGHT = "60vh"; // The height of the main content box
+export default function WorkSection() {
+  useEffect(() => {
+    const titles = gsap.utils.toArray(".left-content");
+    const cards = gsap.utils.toArray(".right .card");
 
-export default function StackedSectionsV2() {
-    const containerRef = useRef(null);
-    const panelsRef = useRef([]);
-    panelsRef.current = [];
+    gsap.set(titles, { y: 100 });
 
-    const addToRefs = (el) => {
-        if (el && !panelsRef.current.includes(el)) {
-            panelsRef.current.push(el);
-        }
-    };
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: ".wrapper",
+        start: "top top",
+        end: "+=" + 100 * cards.length + "%",
+        scrub: true,
+        pin: true,
+      },
+    });
 
-    useEffect(() => {
-        const panels = panelsRef.current;
-        const container = containerRef.current;
+    cards.forEach((card, i) => {
+      const title = titles[i];
+      const prevTitle = titles[i - 1];
 
-        // The master timeline
-        const masterTimeline = gsap.timeline({
-            scrollTrigger: {
-                trigger: container,
-                pin: true,
-                scrub: 1,
-                start: "top top",
-                // **THE FIX for the bug**: The end trigger is now calculated to give
-                // each panel a full screen height (100vh) of scroll distance.
-                end: () => `+=${(panels.length - 1) * 100}vh`,
-            }
-        });
+      tl.to(card, {
+        clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+        duration: 1,
+        ease: "none",
+      }).call(
+        () => {
+          const direction = tl.scrollTrigger.direction > 0;
+          gsap.to(title, {
+            autoAlpha: direction ? 1 : 0,
+            y: 0,
+            duration: direction ? 0.5 : 0.2,
+            onComplete: () =>
+              !direction && gsap.set(title, { autoAlpha: 0, y: 100 }),
+          });
+        },
+        [],
+        i + 0.5
+      );
 
-        // Loop through panels to create the sequential animation
-        panels.forEach((panel, i) => {
-            // Skip the first panel, as it's the starting point
-            if (i === 0) return;
+      if (prevTitle) {
+        tl.call(
+          () => {
+            const direction = tl.scrollTrigger.direction > 0;
+            gsap.to(prevTitle, {
+              autoAlpha: direction ? 0 : 1,
+              duration: direction ? 0.2 : 0.5,
+              y: 0,
+              onComplete: () =>
+                direction && gsap.set(prevTitle, { autoAlpha: 0, y: 100 }),
+            });
+          },
+          [],
+          "<"
+        );
+      }
+    });
+  }, []);
 
-            // Animate the current panel to slide up over the previous one
-            masterTimeline.to(panel, {
-                // Animate the panel's top edge to sit below the previous stacked titles
-                y: i * TITLE_AREA_HEIGHT,
-                ease: "none",
-            },
-            // The position parameter "<" ensures this animation starts
-            // exactly when the previous one finishes, creating a clean sequence.
-            "<"
-            );
-        });
-
-        return () => {
-            ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-        };
-    }, []);
-
-    return (
-        // This container's height determines the total scrollable distance.
-        // We give it a height of 100vh for each section.
-        <div ref={containerRef} style={{ height: `${sectionsData.length * 100}vh`, position: 'relative' }}>
-            {sectionsData.map((section, i) => (
-                <div
-                    key={section.id}
-                    ref={addToRefs}
-                    // **THE CHANGE for layout**: We now use `position: sticky` which is often
-                    // more stable for pinning than animating an absolute element.
-                    className="sticky top-0 w-full h-screen overflow-hidden"
-                    style={{ zIndex: i }}
-                >
-                    <div className={`w-full h-full flex flex-col ${section.bgColor}`}>
-                        {/* Title Area */}
-                        <div
-                            className="w-full flex items-center px-8"
-                            style={{ height: `${TITLE_AREA_HEIGHT}px`, flexShrink: 0 }}
-                        >
-                            <h2 className="text-3xl font-bold text-white">{section.title}</h2>
-                        </div>
-
-                        {/* Content Area - only takes up 60% of the height */}
-                        <div
-                            className="w-full flex items-center justify-center p-8 absolute bottom-0"
-                            style={{ height: CONTENT_HEIGHT }}
-                        >
-                            <p className="text-white/80 text-xl max-w-2xl text-center">
-                                {section.content}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            ))}
+  return (
+    <div className="w-full">
+      <div className="wrapper w-full flex bg-gray-100 overflow-hidden">
+        {/* Left Titles */}
+        <div className="column left relative flex-1 flex justify-center items-center h-screen overflow-hidden">
+          {sectionsData.map((section, i) => (
+            <div
+              key={section.id}
+              className="left-content absolute opacity-0 invisible text-gray-900 text-4xl"
+            >
+              <div className="content w-[90%] max-w-[600px] text-center text-lg">
+                <h1>{section.title}</h1>
+                <p>{section.content}</p>
+              </div>
+            </div>
+          ))}
         </div>
-    );
+
+        {/* Right Cards (with images instead of gradients) */}
+        <div className="column right relative flex-1 flex justify-center items-center h-screen">
+          {sectionsData.map((section) => (
+            <div
+              key={section.id}
+              className="card absolute w-[90%] h-[90%] max-w-[400px] max-h-[400px] rounded-xl flex justify-center items-center text-3xl text-white font-bold overflow-hidden [clip-path:polygon(0%_100%,100%_100%,100%_100%,0_100%)]"
+              style={{
+                backgroundImage: `url(${section.img})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            >
+              <h1 className="drop-shadow-lg">{section.title}</h1>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }

@@ -8,6 +8,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 const CorporateCarousel = () => {
   const componentRef = useRef(null);
+  const contentWrapperRef = useRef(null); // Ref for the content that will be animated
   const greenOverlayRef = useRef(null);
   const greenTextRef = useRef(null);
 
@@ -60,14 +61,34 @@ const CorporateCarousel = () => {
   const paragraph = "We blend cutting-edge technology with visionary design to create immersive web experiences that captivate and inspire.";
 
   useLayoutEffect(() => {
+    const component = componentRef.current;
+    const contentWrapper = contentWrapperRef.current;
     const greenOverlay = greenOverlayRef.current;
     const greenText = greenTextRef.current;
     const words = greenText.querySelectorAll('.split-word');
 
     const ctx = gsap.context(() => {
+      // --- FIXED: Parallax Animation ---
+      // This animation now moves the inner content wrapper, not the main component.
+      // This prevents it from conflicting with the pinning animation trigger.
+      gsap.fromTo(contentWrapper,
+        { yPercent: 15 }, // Start 15% down from its final position
+        {
+          yPercent: 0,    // End at its natural position
+          ease: 'none',
+          scrollTrigger: {
+            trigger: component, // The trigger is the stable outer container
+            start: 'top bottom',
+            end: 'center center',
+            scrub: true,
+          }
+        }
+      );
+
+      // --- FIXED: Green Overlay Animation ---
       gsap.set(greenOverlay, {
         position: 'absolute',
-        backgroundColor: '#818181', // Tailwind green-700
+        backgroundColor: '#ebeeec', // Tailwind green-600
         bottom: 0,
         height: '0vh',
         left: '5vw',
@@ -79,32 +100,41 @@ const CorporateCarousel = () => {
       });
       gsap.set(words, { autoAlpha: 0, y: 30 });
 
+      // This timeline controls the pinning and the animations that happen inside the pinned section.
       const tl = gsap.timeline({
         scrollTrigger: {
-          trigger: componentRef.current,
+          trigger: component, // The trigger is the stable outer container
           start: "bottom bottom",
-          end: "+=100%",
+          end: "+=200%",
           scrub: 1,
           pin: true,
         },
       });
 
+      // 1. This creates the "extra scroll" delay.
+      tl.to({}, { duration: 1 });
+
+      // 2. Start bringing in the green overlay. The content will be covered by it.
       tl.to(greenOverlay, {
         height: '100vh',
         left: '0vw',
         right: '0vw',
         borderRadius: 0,
         duration: 1,
-        ease: 'none'
-      })
-      .to(words, {
+        ease: 'power1.inOut'
+      }, "green_in");
+
+      // 3. Animate the text onto the green overlay.
+      tl.to(words, {
         autoAlpha: 1,
         y: 0,
         duration: 0.8,
         ease: 'power3.out',
         stagger: 0.05,
-      }, "-=0.8")
-      .to(words, {
+      }, "-=0.8");
+
+      // 4. Animate the text out.
+      tl.to(words, {
         autoAlpha: 0,
         y: -15,
         duration: 0.4,
@@ -118,59 +148,65 @@ const CorporateCarousel = () => {
   }, []);
 
   return (
-    <div ref={componentRef} className="relative bg-gray-50 py-16 px-6 min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-12">
-          <p className="text-gray-500 text-xs font-medium tracking-wider uppercase mb-6">
-            WHAT WE BELIEVE
-          </p>
-          <h1 className="text-3xl md:text-4xl font-light text-gray-800 max-w-2xl leading-tight mb-30">
-            We believe in the power of energy to help transform lives,
-            enhance communities, and advance human progress.
-          </h1>
-        </div>
+    // The main container acts as a stable trigger for all animations.
+    // CHANGED: Replaced bg-gray-50 with a semi-transparent background and a backdrop blur for the overlay effect.
+    <div ref={componentRef} className="relative bg-gray-900/20 backdrop-blur-lg min-h-screen" style={{ zIndex: 10 }}>
+      {/* This inner wrapper holds the content and is the element that moves for the parallax effect. */}
+      <div ref={contentWrapperRef} className="py-16 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12">
+            <p className="text-gray-800 text-xs font-medium tracking-wider uppercase mb-6">
+              WHAT WE BELIEVE
+            </p>
+            <h1 className="text-3xl md:text-4xl font-light text-gray-900 max-w-2xl leading-tight">
+              We believe in the power of energy to help transform lives,
+              enhance communities, and advance human progress.
+            </h1>
+          </div>
 
-        <div className="relative">
-          <div
-            className="flex items-end gap-4 overflow-x-auto scrollbar-hide pb-2 px-2"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none'
-            }}
-          >
-            {gridItems.map((item, index) => (
-              <div
-                key={index}
-                className={`group cursor-pointer flex-shrink-0 ${item.width} ${item.height}`}
-              >
-                <div className="relative w-full h-full bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col">
-                  <div className="flex-1 overflow-hidden">
-                    <img
-                      src={item.imageUrl}
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                  <div className="bg-white p-4 h-20 flex flex-col justify-center">
-                    <h3 className="text-sm font-medium text-gray-800 mb-2 leading-tight line-clamp-2">
-                      {item.title}
-                    </h3>
-                    <div className="flex items-center text-blue-500 hover:text-blue-600 transition-colors duration-200">
-                      <ArrowRight size={14} className="mr-2 group-hover:translate-x-1 transition-transform duration-200" />
-                      <span className="text-sm font-medium">{item.description}</span>
+          <div className="relative">
+            <div
+              className="flex items-end gap-4 overflow-x-auto scrollbar-hide pb-2 px-2"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none'
+              }}
+            >
+              {gridItems.map((item, index) => (
+                <div
+                  key={index}
+                  className={`group cursor-pointer flex-shrink-0 ${item.width} ${item.height}`}
+                >
+                  <div className="relative w-full h-full bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col">
+                    <div className="flex-1 overflow-hidden">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <div className="bg-white p-4 h-20 flex flex-col justify-center">
+                      <h3 className="text-sm font-medium text-gray-800 mb-2 leading-tight line-clamp-2">
+                        {item.title}
+                      </h3>
+                      <div className="flex items-center text-blue-500 hover:text-blue-600 transition-colors duration-200">
+                        <ArrowRight size={14} className="mr-2 group-hover:translate-x-1 transition-transform duration-200" />
+                        <span className="text-sm font-medium">{item.description}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+          <style jsx>{`
+            .scrollbar-hide::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
         </div>
-        <style jsx>{`
-          .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-          }
-        `}</style>
       </div>
+
 
       {/* Green overlay that rises and expands */}
       <div ref={greenOverlayRef} className="pointer-events-none overflow-hidden">
@@ -183,7 +219,7 @@ const CorporateCarousel = () => {
                 </span>
               ))}
             </h2>
-            <p className="mt-6 text-xl md:text-2xl text-gray-300">
+            <p className="mt-6 text-xl md:text-2xl text-gray-200">
               {paragraph.split(" ").map((word, index) => (
                 <span key={index} className="inline-block overflow-hidden">
                   <span className="inline-block split-word">{word}&nbsp;</span>

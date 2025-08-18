@@ -3,6 +3,7 @@ import BeliefSection from "@/components/imagesGallery";
 import SecondCompo from '@/components/secondCompo'
 import ContactSection from "@/components/ContactSection";
 import VideoMaskTransition from "@/components/MaskVideo";
+import MaskVideo from "@/components/testMaskVideo";
 
 export default function Home() {
   return (
@@ -11,7 +12,8 @@ export default function Home() {
       <Scroll />
       <BeliefSection />
       {/* <ModernGalleryCarousel /> */}
-      {/* <VideoMaskTransition /> */}
+      {/* <MaskVideo /> */}
+      <VideoMaskTransition />
       {/* <WorkSection /> */}
       <SecondCompo />
       <ContactSection />

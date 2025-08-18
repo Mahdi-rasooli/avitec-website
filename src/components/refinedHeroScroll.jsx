@@ -34,6 +34,9 @@ const slides = [
   },
 ];
 
+// Easing function for smooth scrolling (used in click handlers)
+const easeInOutQuad = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
 const Scroll = () => {
   const componentRef = useRef(null);
   const heroSectionRef = useRef(null);
@@ -83,10 +86,10 @@ const Scroll = () => {
   useEffect(() => {
     if (isMobile) return;
     const lenis = new Lenis({
-      lerp: 0.1, // MODIFIED: Adjusted for a slightly smoother feel
+      lerp: 0.1,
       smoothWheel: true,
       smoothTouch: false,
-      wheelMultiplier: 1.0, // MODIFIED: Increased for better responsiveness
+      wheelMultiplier: 1.0,
       touchMultiplier: 0.9,
       normalizeWheel: true,
       syncTouch: true,
@@ -147,7 +150,7 @@ const Scroll = () => {
   }, [isMobile]);
 
   const handleTagClick = (slideId) => {
-    if (isMobile) return; // Disable click navigation on mobile
+    if (isMobile) return;
 
     const st = stRef.current;
     if (!st) return;
@@ -155,19 +158,18 @@ const Scroll = () => {
     const slideIndex = slides.findIndex(slide => slide.id === slideId);
     if (slideIndex === -1) return;
 
-    // Map to the image phase [heroEnd,imageEnd]
     const heroEnd = 0.38;
     const imageEnd = 0.86;
     const total = slides.length - 1;
-    // Calculate the exact normalized progress for the target slide
     const normalized = slideIndex / total;
     const targetProgress = heroEnd + normalized * (imageEnd - heroEnd);
     const targetScrollY = st.start + targetProgress * (st.end - st.start);
 
+    // ---- FIX #2: Implemented smooth, soft scrolling ----
     if (lenisRef.current) {
-      lenisRef.current.scrollTo(targetScrollY, { duration: 0.9, easing: (t) => t });
+      lenisRef.current.scrollTo(targetScrollY, { duration: 1.5, easing: easeInOutQuad });
     } else {
-      gsap.to(window, { scrollTo: { y: targetScrollY }, duration: 0.9, ease: 'none' });
+      gsap.to(window, { scrollTo: { y: targetScrollY }, duration: 1.5, ease: 'power2.inOut' });
     }
   };
 
@@ -177,20 +179,19 @@ const Scroll = () => {
     const st = stRef.current;
     if (!st) return;
 
-    // Align with current image phase [heroEnd, imageEnd]
     const heroEnd = 0.38;
     const imageEnd = 0.86;
     const total = slides.length - 1;
-    // Calculate the exact normalized progress for the target slide
     const normalized = slideIndex / total;
     const targetProgress = heroEnd + normalized * (imageEnd - heroEnd);
 
     const targetScrollY = st.start + targetProgress * (st.end - st.start);
-
+    
+    // ---- FIX #2: Implemented smooth, soft scrolling ----
     if (lenisRef.current) {
-      lenisRef.current.scrollTo(targetScrollY, { duration: 0.9, easing: (t) => t });
+      lenisRef.current.scrollTo(targetScrollY, { duration: 1.5, easing: easeInOutQuad });
     } else {
-      gsap.to(window, { scrollTo: { y: targetScrollY }, duration: 0.9, ease: 'none' });
+      gsap.to(window, { scrollTo: { y: targetScrollY }, duration: 1.5, ease: 'power2.inOut' });
     }
   };
 
@@ -198,7 +199,6 @@ const Scroll = () => {
     const st = stRef.current;
     if (!st) return;
 
-    // Skip to the end of the component (100% progress)
     const targetScrollY = st.end;
     if (lenisRef.current) {
       lenisRef.current.scrollTo(targetScrollY + 100, { duration: 1.0, easing: (t) => t });
@@ -208,7 +208,6 @@ const Scroll = () => {
   };
 
   useLayoutEffect(() => {
-    // Skip all GSAP animations on mobile
     if (isMobile) return;
 
     gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
@@ -223,7 +222,6 @@ const Scroll = () => {
       const titles = [text1Ref.current, text2Ref.current, text3Ref.current].map(ref => ref?.querySelector('h2'));
       const paragraphs = [text1Ref.current, text2Ref.current, text3Ref.current].map(ref => ref?.querySelector('p'));
 
-      // Hot-path setters to avoid object allocations in onUpdate
       const setHeroContentX = gsap.quickSetter(heroContent, 'xPercent');
       const setHeroContentOpacity = gsap.quickSetter(heroContent, 'opacity');
       const setHeroSectionX = gsap.quickSetter(heroSection, 'xPercent');
@@ -272,12 +270,10 @@ const Scroll = () => {
       gsap.set([overlay1Ref.current, overlay2Ref.current, overlay3Ref.current], { willChange: 'opacity' });
       navVisible.current = false;
 
-      // Common entrance/exit animation for navigation and skip button
       const navTl = gsap.timeline({ paused: true, defaults: { duration: 0.5, ease: 'power3.out' } });
       navTl
         .to(navigation, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)' }, 0)
         .to(skipButton, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)' }, 0.05);
-      // set initial offset for a nicer pop
       gsap.set([navigation, skipButton], { y: 16, scale: 0.98, filter: 'blur(6px)' });
       navTl.eventCallback('onStart', () => gsap.set([navigation, skipButton], { visibility: 'visible', pointerEvents: 'auto' }));
       navTl.eventCallback('onComplete', () => gsap.set([navigation, skipButton], { pointerEvents: 'auto' }));
@@ -288,7 +284,7 @@ const Scroll = () => {
         scrollTrigger: {
           trigger: componentRef.current,
           pin: true,
-          scrub: 0.2, // MODIFIED: Reduced to make animation more responsive to scroll
+          scrub: 0.2,
           start: 'top top',
           end: '+=420%',
           anticipatePin: 1,
@@ -297,10 +293,10 @@ const Scroll = () => {
 
           onUpdate: (self) => {
             const progress = self.progress;
-            const heroEnd = 0.34; // shorter hero phase for faster entry
+            const heroEnd = 0.34;
             const imageEnd = 0.86;
 
-            if (progress > 0.42) { // Show navigation/skip with entrance animation
+            if (progress > heroEnd) {
               if (!navVisible.current) {
                 navTlRef.current?.play(0);
                 navVisible.current = true;
@@ -312,8 +308,7 @@ const Scroll = () => {
               }
             }
 
-            if (progress <= heroEnd) { // Hero phase
-              // Apply easing to make the start more responsive and end smoother
+            if (progress <= heroEnd) {
               const rawHero = gsap.utils.clamp(0, 1, progress / heroEnd);
               const heroProgress = gsap.parseEase('power2.out')(rawHero);
               setHeroSectionX(-100 * heroProgress);
@@ -325,7 +320,6 @@ const Scroll = () => {
               gsap.set(image2Ref.current, { x: '100%' });
               gsap.set([text1Ref.current, text2Ref.current, text3Ref.current], { opacity: 0, y: 50 });
 
-              // Updated scroll indicator logic
               if (scrollIndicatorRef.current) {
                 // Increased visibility duration. Fades out in the last 20% of the hero phase.
                 const startFadeProgress = 0.80;
@@ -345,23 +339,27 @@ const Scroll = () => {
               }
 
             }
-            else if (progress <= imageEnd) { // Image sliding phase
+            else if (progress <= imageEnd) {
+              const imageProgress = (progress - heroEnd) / (imageEnd - heroEnd);
+              if (scrollIndicatorRef.current) {
+                const fadeOutDuration = 0.07;
+                const newOpacity = imageProgress < fadeOutDuration
+                  ? 1 - (imageProgress / fadeOutDuration)
+                  : 0;
+                gsap.set(scrollIndicatorRef.current, { autoAlpha: newOpacity });
+              }
+
               gsap.set(heroContent, { opacity: 0 });
               gsap.set(heroBackground, { opacity: 0 });
               setHeroSectionX(-100);
               setImageLeft(0);
               setImageWidth(100);
-              if (scrollIndicatorRef.current) {
-                  gsap.set(scrollIndicatorRef.current, { autoAlpha: 0 });
-              }
 
-              const imageProgress = (progress - heroEnd) / (imageEnd - heroEnd); // Smoothly normalized 0..1
               const totalSlides = slides.length - 1;
               const currentSlideFloat = imageProgress * totalSlides;
               const currentSlide = Math.floor(currentSlideFloat);
               const slideTransitionProgress = currentSlideFloat - currentSlide;
               const easedSlide = gsap.parseEase('power2.inOut')(slideTransitionProgress);
-              // Highlight only when the image is full-width and the spotlight is centered on a slide
               const nearestIndex = Math.round(currentSlideFloat);
               const dist = Math.abs(currentSlideFloat - nearestIndex);
               const imageIsFullWidth = progress >= (heroEnd + 0.01);
@@ -377,7 +375,6 @@ const Scroll = () => {
                 let y = 60;
                 let scale = 0.95;
 
-                // Handles fade-out for the current text after it has been visible
                 if (index === currentSlide) {
                     const fadeOutProgress = slideTransitionProgress > 0.5 ? Math.min(1, (slideTransitionProgress - 0.5) / 0.5) : 0;
                     opacity = 1 - gsap.parseEase("power2.out")(fadeOutProgress);
@@ -385,7 +382,6 @@ const Scroll = () => {
                     scale = 1 - (0.05 * gsap.parseEase("power1.out")(fadeOutProgress));
                 }
 
-                // Handles fade-in for the upcoming text
                 if (index === currentSlide + 1 && slideTransitionProgress > 0.6) {
                     const fadeInProgress = Math.min(1, (slideTransitionProgress - 0.6) / 0.4);
                     opacity = gsap.parseEase("power2.out")(fadeInProgress);
@@ -393,9 +389,8 @@ const Scroll = () => {
                     scale = 0.95 + (0.05 * gsap.parseEase("back.out(1.2)")(fadeInProgress));
                 }
 
-                // FIX: Specific override to animate the FIRST text element IN
                 if (index === 0 && currentSlide === 0 && slideTransitionProgress < 0.5) {
-                    const fadeInProgress = slideTransitionProgress / 0.5; // Normalized 0-1 for the first half
+                    const fadeInProgress = slideTransitionProgress / 0.5;
                     opacity = gsap.parseEase("power2.out")(fadeInProgress);
                     y = 60 * (1 - gsap.parseEase("power2.out")(fadeInProgress));
                     scale = 0.95 + (0.05 * gsap.parseEase("back.out(1.2)")(fadeInProgress));
@@ -428,32 +423,28 @@ const Scroll = () => {
               if (currentSlide === 0) {
                   gsap.set(image2Ref.current, { x: `${100 - 100 * easedSlide}%` });
                   gsap.set(image3Ref.current, { x: '100%' });
-                  // MODIFIED: Re-enabled blur effect for image transitions
                   gsap.set(image1Ref.current.querySelector('.slide-image'), { filter: `blur(${8 * easedSlide}px)` });
                   gsap.set(image2Ref.current.querySelector('.slide-image'), { filter: `blur(${8 * (1 - easedSlide)}px)` });
-                   // Fade-in effect for incoming slide
-                   gsap.set(overlay1Ref.current, { opacity: 0.35 * (1 - easedSlide) });
-                   gsap.set(overlay2Ref.current, { opacity: 0.35 + (0.35 * (1 - easedSlide)) });
+                  gsap.set(overlay1Ref.current, { opacity: 0.25 + (0.10 * easedSlide) });
+                  gsap.set(overlay2Ref.current, { opacity: 0.35 - (0.10 * easedSlide) });
               } else if (currentSlide === 1) {
                   gsap.set(image1Ref.current, { x: '0%' });
                   gsap.set(image2Ref.current, { x: '0%' });
                   gsap.set(image3Ref.current, { x: `${100 - 100 * easedSlide}%` });
-                  // MODIFIED: Re-enabled blur effect for image transitions
                   gsap.set(image2Ref.current.querySelector('.slide-image'), { filter: `blur(${8 * easedSlide}px)` });
                   gsap.set(image3Ref.current.querySelector('.slide-image'), { filter: `blur(${8 * (1 - easedSlide)}px)` });
-                   // Fade-in effect for incoming slide
-                   gsap.set(overlay2Ref.current, { opacity: 0.35 * (1 - easedSlide) });
-                   gsap.set(overlay3Ref.current, { opacity: 0.35 + (0.35 * (1 - easedSlide)) });
+                  gsap.set(overlay2Ref.current, { opacity: 0.25 + (0.10 * easedSlide) });
+                  gsap.set(overlay3Ref.current, { opacity: 0.35 * (1 - easedSlide) });
               } else {
                 gsap.set(image3Ref.current, { x: '0%' });
                 gsap.set(image3Ref.current.querySelector('.slide-image'), { filter: 'blur(0px)' });
                 gsap.set(overlay3Ref.current, { opacity: 0 });
-               gsap.set([overlay1Ref.current, overlay2Ref.current], { opacity: 0.35 });
+                gsap.set([overlay1Ref.current, overlay2Ref.current], { opacity: 0.35 });
               }
 
               if (progressBarRef.current && spotlightRef.current) {
                 const thumbnailWidth = 270;
-                const thumbnailGap = 16;
+                const thumbnailGap = 24; // Corresponds to md:gap-6
                 const maxTravelDistance = (slides.length - 1) * (thumbnailWidth + thumbnailGap);
                 const currentX = imageProgress * maxTravelDistance;
 
@@ -467,7 +458,6 @@ const Scroll = () => {
               }
             }
             else if (progress > imageEnd) {
-              // Sticky phase (80% to 100%) - Last image stays visible
               gsap.set(heroContent, { opacity: 0 });
               gsap.set(heroBackground, { opacity: 0 });
               setHeroSectionX(-100);
@@ -477,14 +467,12 @@ const Scroll = () => {
                   gsap.set(scrollIndicatorRef.current, { autoAlpha: 0 });
               }
 
-              // Keep the third image visible and active
               gsap.set(image1Ref.current, { x: '0%' });
               gsap.set(image2Ref.current, { x: '0%' });
               gsap.set(image3Ref.current, { x: '0%' });
               gsap.set(image3Ref.current.querySelector('.slide-image'), { filter: 'blur(0px)' });
               gsap.set(overlay3Ref.current, { opacity: 0 });
 
-              // Keep third text visible with enhanced animation
               gsap.set(text1Ref.current, { opacity: 0, y: 60, scale: 0.95 });
               gsap.set(text2Ref.current, { opacity: 0, y: 60, scale: 0.95 });
               gsap.set(text3Ref.current, { opacity: 1, y: 0, scale: 1, rotationX: 0, filter: 'blur(0px)' });
@@ -498,7 +486,7 @@ const Scroll = () => {
 
               if (progressBarRef.current && spotlightRef.current) {
                 const thumbnailWidth = 270;
-                const thumbnailGap = 16;
+                const thumbnailGap = 24; // Corresponds to md:gap-6
                 const maxTravelDistance = (slides.length - 1) * (thumbnailWidth + thumbnailGap);
                 gsap.set(progressBarRef.current, { x: maxTravelDistance });
 
@@ -543,7 +531,7 @@ const Scroll = () => {
           </button>
         </div>
 
-        {/* Mobile Gallery - Horizontal scroll on vertical gesture, no thumbnails/progress */}
+        {/* Mobile Gallery */}
         <div ref={galleryRef} className="relative h-screen overflow-hidden">
           <div className="gallery-content flex flex-nowrap h-full" style={{ width: `${slides.length * 100}vw` }}>
             {slides.map((slide, index) => (
@@ -571,6 +559,14 @@ const Scroll = () => {
       </div>
     );
   }
+
+  // ---- FIX #1: Calculate total width of thumbnails for correct sizing ----
+  const thumbnailWidth = 270;
+  const thumbnailGap = 24; // Corresponds to md:gap-6 (1.5rem = 24px)
+  const trackWidthStyle = {
+    width: `${(slides.length * thumbnailWidth) + ((slides.length - 1) * thumbnailGap)}px`
+  };
+
 
   // Desktop Layout
   return (
@@ -646,10 +642,7 @@ const Scroll = () => {
             onClick={handleSkipSection}
             className="group cursor-pointer relative overflow-hidden top-8 left-8 bg-white/90 border border-white/20 text-black px-10 py-7 rounded-none font-medium inline-flex items-center gap-2  transition-all duration-300 hover:scale-105 hover:text-white"
           >
-            {/* Animated background fill */}
             <span className="absolute inset-0 bg-black/90 transform -translate-x-full transition-transform duration-700 ease-out group-hover:translate-x-0 rounded-none"></span>
-
-            {/* Button content */}
             <span className="relative text-lg font-bold">Skip Section</span>
             <ChevronDown className="w-4 h-4 relative transform group-hover:rotate-180 transition-transform duration-300" />
           </button>
@@ -660,7 +653,6 @@ const Scroll = () => {
           <div className="flex items-center">
             <span className="text-sm md:text-base opacity-75 mr-4">Scroll</span>
             <div className="relative overflow-hidden w-48">
-              {/* Long arrow that gets revealed as user scrolls */}
               <div className="flex items-center">
                 <div className="arrow-line h-px bg-white/50 transition-all duration-500 ease-out" style={{ width: '32px' }}></div>
                 <svg className="w-6 h-6 ml-2 transition-opacity duration-300" style={{ opacity: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -678,7 +670,7 @@ const Scroll = () => {
             <div ref={progressBarRef} className="absolute top-0 left-0 h-1 bg-purple-500 shadow-lg shadow-blue-500/50" style={{ width: '270px' }}></div>
           </div>
           <div className="flex gap-4 md:gap-6 relative overflow-hidden">
-            {/* The base thumbnails (less visible) */}
+            {/* The base thumbnails */}
             {slides.map((slide, i) => (
               <div
                 key={i}
@@ -703,9 +695,10 @@ const Scroll = () => {
             {/* The spotlight/glassy overlay */}
             <div
               ref={spotlightRef}
-              className="absolute top-0 left-0 w-full h-full pointer-events-none z-20 overflow-hidden"
+              className="absolute top-0 left-0 h-full pointer-events-none z-20 overflow-hidden"
             >
-              <div className="w-full h-full flex gap-4 md:gap-6">
+              {/* ---- FIX #1: Applied explicit width to inner container ---- */}
+              <div className="h-full flex gap-4 md:gap-6" style={trackWidthStyle}>
                 {slides.map((slide, i) => (
                   <div
                     key={`spotlight-${i}`}

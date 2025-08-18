@@ -7,7 +7,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 
 
-export default function VideoMaskTransition() {
+export default function MaskVideo() {
     const containerRef = useRef(null);
     const backgroundVideoRef = useRef(null);
     const textMaskRef = useRef(null);
@@ -28,19 +28,25 @@ export default function VideoMaskTransition() {
         gsap.set(textMask, { scale: 6, opacity: 0, transformOrigin: "center center" });
         // Green overlay starts at bottom with 0 height and 90% width, then grows up to fill
         if (greenOverlay) {
+            // use the overlay as a black fade-to-cover element
             gsap.set(greenOverlay, {
                 position: 'absolute',
-                // project-friendly green (Tailwind green-700 tone)
-                backgroundColor: '#00000',
+                backgroundColor: '#000',
+                autoAlpha: 0,
                 bottom: 0,
                 height: '0vh',
                 left: '5vw',
                 right: '5vw',
                 borderRadius: 12,
-                zIndex: 20,
+                zIndex: 40,
                 transformOrigin: 'bottom center',
-                willChange: 'height,left,right,border-radius'
+                willChange: 'height,left,right,border-radius,opacity'
             });
+        }
+        // prepare the footer (from ContactSection) to slide up
+        const footerEl = typeof document !== 'undefined' ? document.getElementById('site-footer') : null;
+        if (footerEl) {
+            gsap.set(footerEl, { y: '100%', force3D: true });
         }
 
         // prepare green overlay text initial state
@@ -54,7 +60,7 @@ export default function VideoMaskTransition() {
             scrollTrigger: {
                 trigger: container,
                 start: "top top",
-                end: "+=120%",
+                end: "+=220%",
                 scrub: 1,
                 pin: true,
                 anticipatePin: 1,
@@ -83,18 +89,27 @@ export default function VideoMaskTransition() {
             duration: 1,
             ease: 'none'
         }, 'brandShown')
+        // expand overlay to cover the screen (fade to black)
         .to(greenOverlay, {
             height: '100vh',
             left: '0vw',
             right: '0vw',
             borderRadius: 0,
-            duration: 1,
-            ease: 'none'
-        }, 'brandShown');
+            duration: 0.8,
+            ease: 'power2.out',
+            autoAlpha: 1
+        }, 'brandShown')
+        // after overlay has covered, slide the footer up from bottom
+        .to(footerEl || {}, {
+            y: '0%',
+            duration: 0.9,
+            ease: 'power2.out'
+        }, 'brandShown+=0.7');
 
         // Animate words in with a stagger
         if (greenText) {
             const words = greenText.querySelectorAll('.split-word');
+            // keep existing text animation but leave timing as-is in case overlay/text interplay is desired
             tl.to(words, {
                 autoAlpha: 1,
                 y: 0,
