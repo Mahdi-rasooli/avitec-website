@@ -114,9 +114,9 @@ export default function VideoMaskTransition() {
         return () => ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     }, []);
 
-    const headline = "Forging the Future of Digital Interaction";
-    const paragraph = "We blend cutting-edge technology with visionary design to create immersive web experiences that captivate and inspire.";
-
+    const headline = "AVITEC works for a better future";
+    const paragraph = "AVITEC was founded to develop and expand services to Customers in the Energy, Oil, Gas, and Petrochemical industries with a modern, advanced, innovative, and sustainable approach.";
+  
     return (
         <div className="relative">
             <div ref={containerRef} className="h-screen relative overflow-hidden bg-black">

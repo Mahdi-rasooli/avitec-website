@@ -2,6 +2,11 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import image12 from '../../public/img12.jpg'
+import image14 from '../../public/img14.jpg'
+import image15 from '../../public/img15.jpg'
+import Image from 'next/image'
+
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -12,7 +17,7 @@ const sectionsData = [
     subtitle: "Innovation • Precision • Sustainability",
     content: "Our engineering services provide innovative solutions for complex challenges. We focus on delivering sustainable and efficient designs that stand the test of time.",
     features: ["Advanced CAD Design", "Structural Analysis", "Environmental Impact", "Quality Assurance"],
-    img: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1600&q=80",
+    img: image12,
     stats: { value: "500+", label: "Projects" },
     accentColor: "#3B82F6", // Blue
     bgGradient: "from-blue-50 to-indigo-50"
@@ -23,7 +28,7 @@ const sectionsData = [
     subtitle: "Efficiency • Quality • Cost Optimization",
     content: "We streamline the procurement process, ensuring timely delivery of high-quality materials and services. Our strategic sourcing minimizes costs and risks.",
     features: ["Global Supplier Network", "Cost Optimization", "Risk Management", "Quality Assurance"],
-    img: "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1600&q=80",
+    img: image14,
     stats: { value: "98%", label: "On Time" },
     accentColor: "#10B981", // Green
     bgGradient: "from-emerald-50 to-teal-50"
@@ -34,7 +39,7 @@ const sectionsData = [
     subtitle: "Safety • Craftsmanship • Reliability",
     content: "Our construction teams are committed to safety, quality, and efficiency. We deliver projects on time with exceptional craftsmanship and attention to detail.",
     features: ["Safety First Protocol", "Premium Materials", "Expert Craftsmanship", "Timely Delivery"],
-    img: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1600&q=80",
+    img: image15,
     stats: { value: "100%", label: "Safety Record" },
     accentColor: "#F59E0B", // Amber
     bgGradient: "from-amber-50 to-orange-50"
@@ -165,9 +170,11 @@ export default function WorkSection() {
           {sectionsData.map((section) => (
             <div
               key={section.id}
-              className="card absolute w-[400px] h-[500px] rounded-3xl overflow-hidden shadow-2xl group [clip-path:polygon(0%_100%,100%_100%,100%_100%,0_100%)]"
-              style={{ backgroundImage: `url(${section.img})`, backgroundSize: "cover", backgroundPosition: "center" }}
+              className="card absolute w-[500px] h-[600px] rounded-3xl overflow-hidden shadow-2xl group [clip-path:polygon(0%_100%,100%_100%,100%_100%,0_100%)]"
             >
+              <div className="relative w-full h-full"> 
+                <Image src={section.img} alt={section.title} fill className="object-cover" />
+              </div>
               <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-all duration-500" />
               <div className="absolute top-8 left-8">
                 <div className="bg-white/20 backdrop-blur-xl px-4 py-3 rounded-2xl border border-white/20">

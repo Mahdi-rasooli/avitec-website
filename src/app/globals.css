@@ -8,6 +8,15 @@
   clip-path: inset(50% 50% 50% 50%);
 }
 
+@keyframes gradient {
+  0% { background-position: top; }
+  100% { background-position: bottom; }
+}
+
+.animate-gradient {
+  animation: gradient 3s ease infinite alternate;
+}
+
 @font-face {
   font-family: 'Satoshi';
   src: url('/fonts/Satoshi/Satoshi-Regular.woff2') format('woff2');

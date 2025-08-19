@@ -10,6 +10,8 @@ import image7 from '../../public/img7.jpg'
 import image8 from '../../public/img8.jpg'
 import image9 from '../../public/img9.jpg'
 import image10 from '../../public/img10.jpg'
+import image16 from '../../public/img16.jpg'
+import image17 from '../../public/img17.jpg'
 import Lenis from '@studio-freight/lenis';
 
 // Mock images for demo
@@ -18,7 +20,7 @@ const slides = [
     id: 'engineering',
     text: 'Engineering',
     subtext: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    image: image10
+    image: image16
   },
   {
     id: 'procurement',
@@ -238,301 +240,291 @@ const Scroll = () => {
     gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
     const ctx = gsap.context(() => {
-      const heroSection = heroSectionRef.current;
-      const heroBackground = heroBackgroundRef.current;
-      const imageContainer = imageContainerRef.current;
-      const navigation = navigationRef.current;
-      const heroContent = heroContentRef.current;
-      const skipButton = skipButtonRef.current;
-      const titles = [text1Ref.current, text2Ref.current, text3Ref.current].map(ref => ref?.querySelector('h2'));
-      const paragraphs = [text1Ref.current, text2Ref.current, text3Ref.current].map(ref => ref?.querySelector('p'));
+        const heroSection = heroSectionRef.current;
+        const heroBackground = heroBackgroundRef.current;
+        const imageContainer = imageContainerRef.current;
+        const navigation = navigationRef.current;
+        const heroContent = heroContentRef.current;
+        const skipButton = skipButtonRef.current;
+        const titles = [text1Ref.current, text2Ref.current, text3Ref.current].map(ref => ref?.querySelector('h2'));
+        const paragraphs = [text1Ref.current, text2Ref.current, text3Ref.current].map(ref => ref?.querySelector('p'));
 
-      const setHeroContentX = gsap.quickSetter(heroContent, 'xPercent');
-      const setHeroContentOpacity = gsap.quickSetter(heroContent, 'opacity');
-      const setHeroSectionX = gsap.quickSetter(heroSection, 'xPercent');
-      const setImageLeft = gsap.quickSetter(imageContainer, 'left', '%');
-      const setImageWidth = gsap.quickSetter(imageContainer, 'width', '%');
-      const applyThumbBorder = (index) => {
-        if (activeThumbIndexRef.current === index) return;
-        const prev = activeThumbIndexRef.current;
-        if (prev >= 0) {
-          const pb = baseBorderRefs.current[prev];
-          const pg = glassBorderRefs.current[prev];
-          if (pb) gsap.set(pb, { autoAlpha: 0 });
-          if (pg) gsap.set(pg, { autoAlpha: 0 });
-        }
-        const bb = baseBorderRefs.current[index];
-        const gb = glassBorderRefs.current[index];
-        if (bb) gsap.set(bb, { autoAlpha: 1 });
-        if (gb) gsap.set(gb, { autoAlpha: 1 });
-        activeThumbIndexRef.current = index;
-      };
-      const clearThumbBorder = () => {
-        const prev = activeThumbIndexRef.current;
-        if (prev >= 0) {
-          const pb = baseBorderRefs.current[prev];
-          const pg = glassBorderRefs.current[prev];
-          if (pb) gsap.set(pb, { autoAlpha: 0 });
-          if (pg) gsap.set(pg, { autoAlpha: 0 });
-          activeThumbIndexRef.current = -1;
-        }
-      };
-
-      gsap.from(heroContent.children, { autoAlpha: 0, y: 50, stagger: 0.2, duration: 1, ease: 'power3.out', delay: 0.5 });
-      gsap.set(componentRef.current, { height: '100vh' });
-      gsap.set(heroSection, { position: 'absolute', left: 0, top: 0, width: '70%', height: '100%', zIndex: 1, overflow: 'hidden' });
-      gsap.set(imageContainer, { position: 'absolute', left: '70%', top: 0, width: '30%', height: '100%', zIndex: 2 });
-
-      gsap.set([image1Ref.current, image2Ref.current, image3Ref.current], { x: (i) => i === 0 ? '0%' : '100%' });
-      gsap.set([image1Ref.current, image2Ref.current, image3Ref.current].map(ref => ref.querySelector('.slide-image')), { filter: 'none', scale: 1, willChange: 'transform, opacity, filter' });
-      gsap.set([overlay1Ref.current, overlay2Ref.current, overlay3Ref.current], { opacity: (i) => i === 0 ? 0.25 : 0.35 });
-      gsap.set([text1Ref.current, text2Ref.current, text3Ref.current], { opacity: 0, y: 50 });
-      gsap.set([navigation, skipButton], { autoAlpha: 0, visibility: 'hidden', pointerEvents: 'none', willChange: 'transform, opacity, filter' });
-      gsap.set([imageContainer], { willChange: 'left, width', contain: 'layout paint size' });
-      gsap.set([heroSection], { willChange: 'transform', backfaceVisibility: 'hidden' });
-      gsap.set([image1Ref.current, image2Ref.current, image3Ref.current], { willChange: 'transform' });
-      gsap.set([text1Ref.current, text2Ref.current, text3Ref.current], { willChange: 'transform, opacity' });
-      gsap.set([overlay1Ref.current, overlay2Ref.current, overlay3Ref.current], { willChange: 'opacity' });
-      navVisible.current = false;
-
-      const navTl = gsap.timeline({ paused: true, defaults: { duration: 0.5, ease: 'power3.out' } });
-      navTl
-        .to(navigation, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)' }, 0)
-        .to(skipButton, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)' }, 0.05);
-      gsap.set([navigation, skipButton], { y: 16, scale: 0.98, filter: 'blur(6px)' });
-      navTl.eventCallback('onStart', () => gsap.set([navigation, skipButton], { visibility: 'visible', pointerEvents: 'auto' }));
-      navTl.eventCallback('onComplete', () => gsap.set([navigation, skipButton], { pointerEvents: 'auto' }));
-      navTl.eventCallback('onReverseComplete', () => gsap.set([navigation, skipButton], { pointerEvents: 'none', visibility: 'hidden' }));
-      navTlRef.current = navTl;
-
-      const masterTimeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: componentRef.current,
-          pin: true,
-          scrub: 0.2,
-          start: 'top top',
-          end: '+=420%',
-          anticipatePin: 1,
-          fastScrollEnd: true,
-          invalidateOnRefresh: true,
-
-          onUpdate: (self) => {
-            const progress = self.progress;
-            const heroEnd = 0.34;
-            const imageEnd = 0.86;
-
-            if (progress > heroEnd) {
-              if (!navVisible.current) {
-                navTlRef.current?.play(0);
-                navVisible.current = true;
-              }
-            } else {
-              if (navVisible.current) {
-                navTlRef.current?.reverse();
-                navVisible.current = false;
-              }
+        const setHeroContentX = gsap.quickSetter(heroContent, 'xPercent');
+        const setHeroContentOpacity = gsap.quickSetter(heroContent, 'opacity');
+        const setHeroSectionX = gsap.quickSetter(heroSection, 'xPercent');
+        const setImageLeft = gsap.quickSetter(imageContainer, 'left', '%');
+        const setImageWidth = gsap.quickSetter(imageContainer, 'width', '%');
+        const applyThumbBorder = (index) => {
+            if (activeThumbIndexRef.current === index) return;
+            const prev = activeThumbIndexRef.current;
+            if (prev >= 0) {
+                const pb = baseBorderRefs.current[prev];
+                const pg = glassBorderRefs.current[prev];
+                if (pb) gsap.set(pb, { autoAlpha: 0 });
+                if (pg) gsap.set(pg, { autoAlpha: 0 });
             }
-
-            if (progress <= heroEnd) {
-              const rawHero = gsap.utils.clamp(0, 1, progress / heroEnd);
-              const heroProgress = gsap.parseEase('power2.out')(rawHero);
-              setHeroSectionX(-100 * heroProgress);
-              setHeroContentX(0);
-              setHeroContentOpacity(1 - heroProgress);
-              setImageLeft(70 - 70 * heroProgress);
-              setImageWidth(30 + 70 * heroProgress);
-              gsap.set(image1Ref.current.querySelector('.slide-image'), { filter: `blur(${8 - 8 * heroProgress}px)` });
-              gsap.set(image2Ref.current, { x: '100%' });
-              gsap.set([text1Ref.current, text2Ref.current, text3Ref.current], { opacity: 0, y: 50 });
-
-              if (scrollIndicatorRef.current) {
-                // Increased visibility duration. Fades out in the last 20% of the hero phase.
-                const startFadeProgress = 0.80;
-                const fadeDuration = 0.20;
-                const scrollIndicatorOpacity = heroProgress <= startFadeProgress ? 1 : Math.max(0, 1 - ((heroProgress - startFadeProgress) / fadeDuration));
-                const xMovement = -70 * heroProgress;
-                // Update the arrow reveal effect
-                const arrowLine = scrollIndicatorRef.current.querySelector('.arrow-line');
-                const arrowIcon = scrollIndicatorRef.current.querySelector('svg');
-                if (arrowLine && arrowIcon) {
-                  const lineWidth = Math.min(192, 32 + (heroProgress * 280)); // Based on hero progress for continuity
-                  arrowLine.style.width = `${lineWidth}px`;
-                  const iconOpacity = Math.min(1, heroProgress * 6);
-                  arrowIcon.style.opacity = iconOpacity;
-                }
-                gsap.set(scrollIndicatorRef.current, { autoAlpha: scrollIndicatorOpacity, x: `${xMovement}vw` });
-              }
-
+            const bb = baseBorderRefs.current[index];
+            const gb = glassBorderRefs.current[index];
+            if (bb) gsap.set(bb, { autoAlpha: 1 });
+            if (gb) gsap.set(gb, { autoAlpha: 1 });
+            activeThumbIndexRef.current = index;
+        };
+        const clearThumbBorder = () => {
+            const prev = activeThumbIndexRef.current;
+            if (prev >= 0) {
+                const pb = baseBorderRefs.current[prev];
+                const pg = glassBorderRefs.current[prev];
+                if (pb) gsap.set(pb, { autoAlpha: 0 });
+                if (pg) gsap.set(pg, { autoAlpha: 0 });
+                activeThumbIndexRef.current = -1;
             }
-            else if (progress <= imageEnd) {
-              const imageProgress = (progress - heroEnd) / (imageEnd - heroEnd);
-              // if (scrollIndicatorRef.current) {
-              //   const fadeOutDuration = 0.07;
-              //   const newOpacity = imageProgress < fadeOutDuration
-              //     ? 1 - (imageProgress / fadeOutDuration)
-              //     : 0;
-              //   gsap.set(scrollIndicatorRef.current, { autoAlpha: newOpacity });
-              // }
+        };
 
-              gsap.set(heroContent, { opacity: 0 });
-              gsap.set(heroBackground, { opacity: 0 });
-              setHeroSectionX(-100);
-              setImageLeft(0);
-              setImageWidth(100);
+        gsap.from(heroContent.children, { autoAlpha: 0, y: 50, stagger: 0.2, duration: 1, ease: 'power3.out', delay: 0.5 });
+        gsap.set(componentRef.current, { height: '100vh' });
+        gsap.set(heroSection, { position: 'absolute', left: 0, top: 0, width: '70%', height: '100%', zIndex: 1, overflow: 'hidden' });
+        gsap.set(imageContainer, { position: 'absolute', left: '70%', top: 0, width: '30%', height: '100%', zIndex: 2 });
 
-              const totalSlides = slides.length - 1;
-              const currentSlideFloat = imageProgress * totalSlides;
-              const currentSlide = Math.floor(currentSlideFloat);
-              const slideTransitionProgress = currentSlideFloat - currentSlide;
-              const easedSlide = gsap.parseEase('power2.inOut')(slideTransitionProgress);
-              const nearestIndex = Math.round(currentSlideFloat);
-              const dist = Math.abs(currentSlideFloat - nearestIndex);
-              const imageIsFullWidth = progress >= (heroEnd + 0.01);
-              if (imageIsFullWidth && dist <= 0.03) {
-                applyThumbBorder(nearestIndex);
-              } else {
-                clearThumbBorder();
-              }
+        // --- MODIFICATION START ---
+        // 1. All images are stacked at the start (x: '0%').
+        gsap.set([image1Ref.current, image2Ref.current, image3Ref.current], { x: '0%' });
+        
+        // 2. The 2nd and 3rd images are hidden with a clip-path for a RIGHT-TO-LEFT reveal.
+        gsap.set([image2Ref.current, image3Ref.current], {
+            clipPath: "polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%)"
+        });
+        // --- MODIFICATION END ---
 
-              const textRefs = [text1Ref, text2Ref, text3Ref];
-              textRefs.forEach((textRef, index) => {
-                let opacity = 0;
-                let y = 60;
-                let scale = 0.95;
+        gsap.set([image1Ref.current, image2Ref.current, image3Ref.current].map(ref => ref.querySelector('.slide-image')), { filter: 'none', scale: 1, willChange: 'transform, opacity, filter' });
+        gsap.set([overlay1Ref.current, overlay2Ref.current, overlay3Ref.current], { opacity: (i) => i === 0 ? 0.25 : 0.35 });
+        gsap.set([text1Ref.current, text2Ref.current, text3Ref.current], { opacity: 0, y: 50 });
+        gsap.set([navigation, skipButton], { autoAlpha: 0, visibility: 'hidden', pointerEvents: 'none', willChange: 'transform, opacity, filter' });
+        gsap.set([imageContainer], { willChange: 'left, width', contain: 'layout paint size' });
+        gsap.set([heroSection], { willChange: 'transform', backfaceVisibility: 'hidden' });
+        gsap.set([image1Ref.current, image2Ref.current, image3Ref.current], { willChange: 'transform' });
+        gsap.set([text1Ref.current, text2Ref.current, text3Ref.current], { willChange: 'transform, opacity' });
+        gsap.set([overlay1Ref.current, overlay2Ref.current, overlay3Ref.current], { willChange: 'opacity' });
+        navVisible.current = false;
 
-                if (index === currentSlide) {
-                    const fadeOutProgress = slideTransitionProgress > 0.5 ? Math.min(1, (slideTransitionProgress - 0.5) / 0.5) : 0;
-                    opacity = 1 - gsap.parseEase("power2.out")(fadeOutProgress);
-                    y = 60 * gsap.parseEase("power2.in")(fadeOutProgress);
-                    scale = 1 - (0.05 * gsap.parseEase("power1.out")(fadeOutProgress));
-                }
+        const navTl = gsap.timeline({ paused: true, defaults: { duration: 0.5, ease: 'power3.out' } });
+        navTl
+            .to(navigation, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)' }, 0)
+            .to(skipButton, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)' }, 0.05);
+        gsap.set([navigation, skipButton], { y: 16, scale: 0.98, filter: 'blur(6px)' });
+        navTl.eventCallback('onStart', () => gsap.set([navigation, skipButton], { visibility: 'visible', pointerEvents: 'auto' }));
+        navTl.eventCallback('onComplete', () => gsap.set([navigation, skipButton], { pointerEvents: 'auto' }));
+        navTl.eventCallback('onReverseComplete', () => gsap.set([navigation, skipButton], { pointerEvents: 'none', visibility: 'hidden' }));
+        navTlRef.current = navTl;
 
-                if (index === currentSlide + 1 && slideTransitionProgress > 0.6) {
-                    const fadeInProgress = Math.min(1, (slideTransitionProgress - 0.6) / 0.4);
-                    opacity = gsap.parseEase("power2.out")(fadeInProgress);
-                    y = 60 * (1 - gsap.parseEase("power2.out")(fadeInProgress));
-                    scale = 0.95 + (0.05 * gsap.parseEase("back.out(1.2)")(fadeInProgress));
-                }
+        const masterTimeline = gsap.timeline({
+            scrollTrigger: {
+                trigger: componentRef.current,
+                pin: true,
+                scrub: 0.2,
+                start: 'top top',
+                end: '+=420%',
+                anticipatePin: 1,
+                fastScrollEnd: true,
+                invalidateOnRefresh: true,
 
-                if (index === 0 && currentSlide === 0 && slideTransitionProgress < 0.5) {
-                    const fadeInProgress = slideTransitionProgress / 0.5;
-                    opacity = gsap.parseEase("power2.out")(fadeInProgress);
-                    y = 60 * (1 - gsap.parseEase("power2.out")(fadeInProgress));
-                    scale = 0.95 + (0.05 * gsap.parseEase("back.out(1.2)")(fadeInProgress));
-                }
+                onUpdate: (self) => {
+                    const progress = self.progress;
+                    const heroEnd = 0.34;
+                    const imageEnd = 0.86;
 
-                opacity = gsap.utils.clamp(0, 1, opacity);
-                y = gsap.utils.clamp(0, 60, y);
-                scale = gsap.utils.clamp(0.95, 1, scale);
+                    if (progress > heroEnd) {
+                        if (!navVisible.current) {
+                            navTlRef.current?.play(0);
+                            navVisible.current = true;
+                        }
+                    } else {
+                        if (navVisible.current) {
+                            navTlRef.current?.reverse();
+                            navVisible.current = false;
+                        }
+                    }
 
-                gsap.set(textRef.current, {
-                  opacity: opacity,
-                  y: y,
-                  scale: scale,
-                  rotationX: y * 0.3,
-                  transformOrigin: "center bottom"
-                });
+                    if (progress <= heroEnd) {
+                        const rawHero = gsap.utils.clamp(0, 1, progress / heroEnd);
+                        const heroProgress = gsap.parseEase('power2.out')(rawHero);
+                        setHeroSectionX(-100 * heroProgress);
+                        setHeroContentX(0);
+                        setHeroContentOpacity(1 - heroProgress);
+                        setImageLeft(70 - 70 * heroProgress);
+                        setImageWidth(30 + 70 * heroProgress);
+                        gsap.set(image1Ref.current.querySelector('.slide-image'), { filter: `blur(${8 - 8 * heroProgress}px)` });
+                        // --- MODIFICATION START ---
+                        // Ensure other images are hidden from the right during hero phase
+                        gsap.set([image2Ref.current, image3Ref.current], { clipPath: "polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%)" });
+                        // --- MODIFICATION END ---
+                        gsap.set([text1Ref.current, text2Ref.current, text3Ref.current], { opacity: 0, y: 50 });
 
-                if (textRef.current) {
-                  const title = titles[index];
-                  const paragraph = paragraphs[index];
-                  if (title) {
-                    gsap.set(title, { opacity: opacity, y: y * 0.8, scale: scale, filter: `blur(${(1 - opacity) * 3}px)` });
-                  }
-                  if (paragraph) {
-                    gsap.set(paragraph, { opacity: opacity * 0.9, y: y * 1.2, scale: scale * 0.98, filter: `blur(${(1 - opacity) * 2}px)`, delay: opacity > 0 ? 0.1 : 0 });
-                  }
-                }
-              });
+                        if (scrollIndicatorRef.current) {
+                            const startFadeProgress = 0.80;
+                            const fadeDuration = 0.20;
+                            const scrollIndicatorOpacity = heroProgress <= startFadeProgress ? 1 : Math.max(0, 1 - ((heroProgress - startFadeProgress) / fadeDuration));
+                            const xMovement = -70 * heroProgress;
+                            const arrowLine = scrollIndicatorRef.current.querySelector('.arrow-line');
+                            const arrowIcon = scrollIndicatorRef.current.querySelector('svg');
+                            if (arrowLine && arrowIcon) {
+                                const lineWidth = Math.min(192, 32 + (heroProgress * 280));
+                                arrowLine.style.width = `${lineWidth}px`;
+                                const iconOpacity = Math.min(1, heroProgress * 6);
+                                arrowIcon.style.opacity = iconOpacity;
+                            }
+                            gsap.set(scrollIndicatorRef.current, { autoAlpha: scrollIndicatorOpacity, x: `${xMovement}vw` });
+                        }
 
-              if (currentSlide === 0) {
-                  gsap.set(image2Ref.current, { x: `${100 - 100 * easedSlide}%` });
-                  gsap.set(image3Ref.current, { x: '100%' });
-                  gsap.set(image1Ref.current.querySelector('.slide-image'), { filter: `blur(${8 * easedSlide}px)` });
-                  gsap.set(image2Ref.current.querySelector('.slide-image'), { filter: `blur(${8 * (1 - easedSlide)}px)` });
-                  gsap.set(overlay1Ref.current, { opacity: 0.25 + (0.10 * easedSlide) });
-                  gsap.set(overlay2Ref.current, { opacity: 0.35 - (0.10 * easedSlide) });
-              } else if (currentSlide === 1) {
-                  gsap.set(image1Ref.current, { x: '0%' });
-                  gsap.set(image2Ref.current, { x: '0%' });
-                  gsap.set(image3Ref.current, { x: `${100 - 100 * easedSlide}%` });
-                  gsap.set(image2Ref.current.querySelector('.slide-image'), { filter: `blur(${8 * easedSlide}px)` });
-                  gsap.set(image3Ref.current.querySelector('.slide-image'), { filter: `blur(${8 * (1 - easedSlide)}px)` });
-                  gsap.set(overlay2Ref.current, { opacity: 0.25 + (0.10 * easedSlide) });
-                  gsap.set(overlay3Ref.current, { opacity: 0.35 * (1 - easedSlide) });
-              } else {
-                gsap.set(image3Ref.current, { x: '0%' });
-                gsap.set(image3Ref.current.querySelector('.slide-image'), { filter: 'blur(0px)' });
-                gsap.set(overlay3Ref.current, { opacity: 0 });
-                gsap.set([overlay1Ref.current, overlay2Ref.current], { opacity: 0.35 });
-              }
+                    }
+                    else if (progress <= imageEnd) {
+                        const imageProgress = (progress - heroEnd) / (imageEnd - heroEnd);
+                        
+                        gsap.set(heroContent, { opacity: 0 });
+                        gsap.set(heroBackground, { opacity: 0 });
+                        setHeroSectionX(-100);
+                        setImageLeft(0);
+                        setImageWidth(100);
 
-              if (progressBarRef.current && spotlightRef.current) {
-                const thumbnailWidth = 270;
-                const thumbnailGap = 24; // Corresponds to md:gap-6
-                const maxTravelDistance = (slides.length - 1) * (thumbnailWidth + thumbnailGap);
-                const currentX = imageProgress * maxTravelDistance;
+                        const totalSlides = slides.length - 1;
+                        const currentSlideFloat = imageProgress * totalSlides;
+                        const currentSlide = Math.floor(currentSlideFloat);
+                        const slideTransitionProgress = currentSlideFloat - currentSlide;
+                        const easedSlide = gsap.parseEase('power2.inOut')(slideTransitionProgress);
+                        const nearestIndex = Math.round(currentSlideFloat);
+                        const dist = Math.abs(currentSlideFloat - nearestIndex);
+                        const imageIsFullWidth = progress >= (heroEnd + 0.01);
+                        if (imageIsFullWidth && dist <= 0.03) {
+                            applyThumbBorder(nearestIndex);
+                        } else {
+                            clearThumbBorder();
+                        }
 
-                gsap.set(progressBarRef.current, { x: currentX });
+                        // Text animation logic remains unchanged and works perfectly
+                        const textRefs = [text1Ref, text2Ref, text3Ref];
+                        textRefs.forEach((textRef, index) => {
+                            let opacity = 0; let y = 60; let scale = 0.95;
+                            if (index === currentSlide) {
+                                const fadeOutProgress = slideTransitionProgress > 0.5 ? Math.min(1, (slideTransitionProgress - 0.5) / 0.5) : 0;
+                                opacity = 1 - gsap.parseEase("power2.out")(fadeOutProgress);
+                                y = 60 * gsap.parseEase("power2.in")(fadeOutProgress);
+                                scale = 1 - (0.05 * gsap.parseEase("power1.out")(fadeOutProgress));
+                            }
+                            if (index === currentSlide + 1 && slideTransitionProgress > 0.6) {
+                                const fadeInProgress = Math.min(1, (slideTransitionProgress - 0.6) / 0.4);
+                                opacity = gsap.parseEase("power2.out")(fadeInProgress);
+                                y = 60 * (1 - gsap.parseEase("power2.out")(fadeInProgress));
+                                scale = 0.95 + (0.05 * gsap.parseEase("back.out(1.2)")(fadeInProgress));
+                            }
+                            if (index === 0 && currentSlide === 0 && slideTransitionProgress < 0.5) {
+                                const fadeInProgress = slideTransitionProgress / 0.5;
+                                opacity = gsap.parseEase("power2.out")(fadeInProgress);
+                                y = 60 * (1 - gsap.parseEase("power2.out")(fadeInProgress));
+                                scale = 0.95 + (0.05 * gsap.parseEase("back.out(1.2)")(fadeInProgress));
+                            }
+                            opacity = gsap.utils.clamp(0, 1, opacity); y = gsap.utils.clamp(0, 60, y); scale = gsap.utils.clamp(0.95, 1, scale);
+                            gsap.set(textRef.current, { opacity: opacity, y: y, scale: scale, rotationX: y * 0.3, transformOrigin: "center bottom" });
+                            if (textRef.current) {
+                                const title = titles[index]; const paragraph = paragraphs[index];
+                                if (title) { gsap.set(title, { opacity: opacity, y: y * 0.8, scale: scale, filter: `blur(${(1 - opacity) * 3}px)` }); }
+                                if (paragraph) { gsap.set(paragraph, { opacity: opacity * 0.9, y: y * 1.2, scale: scale * 0.98, filter: `blur(${(1 - opacity) * 2}px)`, delay: opacity > 0 ? 0.1 : 0 }); }
+                            }
+                        });
 
-                const trackWidth = (slides.length * thumbnailWidth) + ((slides.length - 1) * thumbnailGap);
-                const leftInset = currentX;
-                const rightInset = trackWidth - (currentX + thumbnailWidth);
+                        // --- MODIFICATION START ---
+                        // 3. This section is updated for a RIGHT-TO-LEFT clip-path animation with BLUR effect.
+                        if (currentSlide === 0) {
+                            const revealPercentage = 100 - (100 * easedSlide);
+                            const blurAmount = 16 * (1 - easedSlide); // Blur decreases as image reveals
+                            gsap.set(image2Ref.current.querySelector('.slide-image'), { filter: `blur(${blurAmount}px)` });
+                            gsap.set(image2Ref.current, {
+                                clipPath: `polygon(${revealPercentage}% 0%, 100% 0%, 100% 100%, ${revealPercentage}% 100%)`
+                            });
+                            gsap.set(image3Ref.current, {
+                                clipPath: "polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%)"
+                            });
 
-                gsap.set(spotlightRef.current, { clipPath: `inset(0px ${rightInset}px 0px ${leftInset}px)` });
-              }
-            }
-            else if (progress > imageEnd) {
-              gsap.set(heroContent, { opacity: 0 });
-              gsap.set(heroBackground, { opacity: 0 });
-              setHeroSectionX(-100);
-              setImageLeft(0);
-              setImageWidth(100);
-              if (scrollIndicatorRef.current) {
-                  gsap.set(scrollIndicatorRef.current, { autoAlpha: 0 });
-              }
+                            gsap.set(overlay1Ref.current, { opacity: 0.25 + (0.10 * easedSlide) });
+                            gsap.set(overlay2Ref.current, { opacity: 0.35 - (0.10 * easedSlide) });
 
-              gsap.set(image1Ref.current, { x: '0%' });
-              gsap.set(image2Ref.current, { x: '0%' });
-              gsap.set(image3Ref.current, { x: '0%' });
-              gsap.set(image3Ref.current.querySelector('.slide-image'), { filter: 'blur(0px)' });
-              gsap.set(overlay3Ref.current, { opacity: 0 });
+                        } else if (currentSlide === 1) {
+                            const revealPercentage = 100 - (100 * easedSlide);
+                            const blurAmount = 16 * (1 - easedSlide); // Blur decreases as image reveals
+                            gsap.set(image2Ref.current.querySelector('.slide-image'), { filter: 'blur(0px)' }); // Ensure previous image is clear
+                            gsap.set(image3Ref.current.querySelector('.slide-image'), { filter: `blur(${blurAmount}px)` });
+                            gsap.set(image2Ref.current, {
+                                clipPath: `polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)`
+                            });
+                            gsap.set(image3Ref.current, {
+                                clipPath: `polygon(${revealPercentage}% 0%, 100% 0%, 100% 100%, ${revealPercentage}% 100%)`
+                            });
+                            
+                            gsap.set(overlay2Ref.current, { opacity: 0.25 + (0.10 * easedSlide) });
+                            gsap.set(overlay3Ref.current, { opacity: 0.35 * (1 - easedSlide) });
+                        }
+                        // --- MODIFICATION END ---
+                        
+                        if (progressBarRef.current && spotlightRef.current) {
+                            const thumbnailWidth = 270; const thumbnailGap = 24;
+                            const maxTravelDistance = (slides.length - 1) * (thumbnailWidth + thumbnailGap);
+                            const currentX = imageProgress * maxTravelDistance;
+                            gsap.set(progressBarRef.current, { x: currentX });
+                            const trackWidth = (slides.length * thumbnailWidth) + ((slides.length - 1) * thumbnailGap);
+                            const leftInset = currentX;
+                            const rightInset = trackWidth - (currentX + thumbnailWidth);
+                            gsap.set(spotlightRef.current, { clipPath: `inset(0px ${rightInset}px 0px ${leftInset}px)` });
+                        }
+                    }
+                    else if (progress > imageEnd) {
+                        gsap.set(heroContent, { opacity: 0 });
+                        gsap.set(heroBackground, { opacity: 0 });
+                        setHeroSectionX(-100);
+                        setImageLeft(0);
+                        setImageWidth(100);
+                        if (scrollIndicatorRef.current) {
+                            gsap.set(scrollIndicatorRef.current, { autoAlpha: 0 });
+                        }
+                        
+                        // Set final state for images: all fully revealed and clear
+                        gsap.set([image1Ref.current, image2Ref.current, image3Ref.current], {
+                            clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)'
+                        });
+                        gsap.set([image2Ref.current.querySelector('.slide-image'), image3Ref.current.querySelector('.slide-image')], { filter: 'blur(0px)' });
+                        gsap.set(overlay3Ref.current, { opacity: 0 });
 
-              gsap.set(text1Ref.current, { opacity: 0, y: 60, scale: 0.95 });
-              gsap.set(text2Ref.current, { opacity: 0, y: 60, scale: 0.95 });
-              gsap.set(text3Ref.current, { opacity: 1, y: 0, scale: 1, rotationX: 0, filter: 'blur(0px)' });
+                        gsap.set(text1Ref.current, { opacity: 0, y: 60, scale: 0.95 });
+                        gsap.set(text2Ref.current, { opacity: 0, y: 60, scale: 0.95 });
+                        gsap.set(text3Ref.current, { opacity: 1, y: 0, scale: 1, rotationX: 0, filter: 'blur(0px)' });
 
-              if (text3Ref.current) {
-                const title = titles[2];
-                const paragraph = paragraphs[2];
-                if (title) { gsap.set(title, { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }); }
-                if (paragraph) { gsap.set(paragraph, { opacity: 0.9, y: 0, scale: 1, filter: 'blur(0px)' }); }
-              }
+                        if (text3Ref.current) {
+                            const title = titles[2]; const paragraph = paragraphs[2];
+                            if (title) { gsap.set(title, { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }); }
+                            if (paragraph) { gsap.set(paragraph, { opacity: 0.9, y: 0, scale: 1, filter: 'blur(0px)' }); }
+                        }
 
-              if (progressBarRef.current && spotlightRef.current) {
-                const thumbnailWidth = 270;
-                const thumbnailGap = 24; // Corresponds to md:gap-6
-                const maxTravelDistance = (slides.length - 1) * (thumbnailWidth + thumbnailGap);
-                gsap.set(progressBarRef.current, { x: maxTravelDistance });
-
-                const trackWidth = (slides.length * thumbnailWidth) + ((slides.length - 1) * thumbnailGap);
-                const leftInset = maxTravelDistance;
-                const rightInset = trackWidth - (maxTravelDistance + thumbnailWidth);
-                gsap.set(spotlightRef.current, { clipPath: `inset(0px ${Math.max(0, rightInset)}px 0px ${leftInset}px)` });
-              }
-              applyThumbBorder(slides.length - 1);
-            }
-          },
-        },
-      });
-      stRef.current = masterTimeline.scrollTrigger;
+                        if (progressBarRef.current && spotlightRef.current) {
+                            const thumbnailWidth = 270; const thumbnailGap = 24;
+                            const maxTravelDistance = (slides.length - 1) * (thumbnailWidth + thumbnailGap);
+                            gsap.set(progressBarRef.current, { x: maxTravelDistance });
+                            const trackWidth = (slides.length * thumbnailWidth) + ((slides.length - 1) * thumbnailGap);
+                            const leftInset = maxTravelDistance;
+                            const rightInset = trackWidth - (maxTravelDistance + thumbnailWidth);
+                            gsap.set(spotlightRef.current, { clipPath: `inset(0px ${Math.max(0, rightInset)}px 0px ${leftInset}px)` });
+                        }
+                        applyThumbBorder(slides.length - 1);
+                    }
+                },
+            },
+        });
+        stRef.current = masterTimeline.scrollTrigger;
     }, componentRef);
 
     return () => {
-      ctx.revert();
-      if (stRef.current) stRef.current.kill();
+        ctx.revert();
+        if (stRef.current) stRef.current.kill();
     };
-  }, [isMobile]);
+}, [isMobile]);
+
+
 
   // Mobile Layout
   if (isMobile) {
