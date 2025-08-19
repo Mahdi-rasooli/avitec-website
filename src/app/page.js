@@ -11,9 +11,9 @@ export default function Home() {
   return (
     <div>
       <ScrollHeader />
-      <Scroll />
-      <BeliefSection />
-      {/* <HomeSections /> */}
+      {/* <Scroll /> */}
+      {/* <BeliefSection /> */}
+      <HomeSections />
       {/* <ModernGalleryCarousel /> */}
       <VideoMaskTransition />
       {/* <WorkSection /> */}
