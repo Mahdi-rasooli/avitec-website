@@ -92,7 +92,8 @@ const Scroll = () => {
   useEffect(() => {
     if (isMobile) return;
     const lenis = new Lenis({
-      lerp: 0.1,
+      // lerp: 0.1,
+      lerp: 0.07,
       smoothWheel: true,
       smoothTouch: false,
       wheelMultiplier: 1.0,
@@ -320,7 +321,8 @@ const Scroll = () => {
             scrollTrigger: {
                 trigger: componentRef.current,
                 pin: true,
-                scrub: 0.2,
+                // scrub: 0.2,
+                scrub: true,
                 start: 'top top',
                 end: '+=420%',
                 anticipatePin: 1,

@@ -1,5 +1,5 @@
-'use client'
-import React from 'react';
+ 'use client'
+import React, { useRef, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 
 const CorporateCarousel = () => {
@@ -48,6 +48,51 @@ const CorporateCarousel = () => {
     }
   ];
 
+  const scrollerRef = useRef(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollStart = useRef(0);
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    const handlePointerDown = (e) => {
+      isDragging.current = true;
+      scroller.setPointerCapture?.(e.pointerId);
+      startX.current = e.clientX - scroller.getBoundingClientRect().left;
+      scrollStart.current = scroller.scrollLeft;
+      scroller.classList.add('dragging');
+    };
+
+    const handlePointerMove = (e) => {
+      if (!isDragging.current) return;
+      const x = e.clientX - scroller.getBoundingClientRect().left;
+      const walk = (x - startX.current) * 1.2; // scroll-fast
+      scroller.scrollLeft = scrollStart.current - walk;
+    };
+
+    const endDrag = (e) => {
+      isDragging.current = false;
+      scroller.releasePointerCapture?.(e?.pointerId);
+      scroller.classList.remove('dragging');
+    };
+
+    scroller.addEventListener('pointerdown', handlePointerDown);
+    scroller.addEventListener('pointermove', handlePointerMove);
+    scroller.addEventListener('pointerup', endDrag);
+    scroller.addEventListener('pointercancel', endDrag);
+    scroller.addEventListener('pointerleave', endDrag);
+
+    return () => {
+      scroller.removeEventListener('pointerdown', handlePointerDown);
+      scroller.removeEventListener('pointermove', handlePointerMove);
+      scroller.removeEventListener('pointerup', endDrag);
+      scroller.removeEventListener('pointercancel', endDrag);
+      scroller.removeEventListener('pointerleave', endDrag);
+    };
+  }, []);
+
   return (
     <div className="relative text-gray-100" style={{ zIndex: 10 }}>
       <div className="py-16 sm:py-24 px-4 sm:px-6 md:px-12 lg:px-20">
@@ -64,6 +109,7 @@ const CorporateCarousel = () => {
 
           <div className="relative">
             <div
+              ref={scrollerRef}
               className="flex items-end gap-4 md:gap-6 overflow-x-auto scrollbar-hide pb-4 px-2 cursor-grab active:cursor-grabbing"
               style={{
                 scrollbarWidth: 'none',
@@ -75,7 +121,7 @@ const CorporateCarousel = () => {
                   key={index}
                   className={`group relative cursor-pointer flex-shrink-0 ${item.width} ${item.height} rounded-lg overflow-hidden`}
                 >
-                  <div className="relative w-full h-full bg-gray-800 rounded-lg border border-white/10 shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 flex flex-col">
+                  <div className="relative w-full h-full bg-gray-800 rounded-lg border border-gray-50 shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 flex flex-col">
                     <div className="flex-1 overflow-hidden">
                       <img
                         src={item.imageUrl}
@@ -101,6 +147,10 @@ const CorporateCarousel = () => {
           <style jsx>{`
             .scrollbar-hide::-webkit-scrollbar {
               display: none;
+            }
+            .dragging {
+              cursor: grabbing !important;
+              user-select: none !important;
             }
           `}</style>
         </div>

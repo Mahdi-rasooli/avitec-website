@@ -24,10 +24,10 @@ const RotatingIcon = () => {
     <mesh ref={meshRef} scale={0.8}>
       <icosahedronGeometry args={[1.5, 0]} />
       <meshStandardMaterial
-        color={"#1a1a1a"}
-        roughness={0.2}
-        metalness={0.9}
+        color="#7CFC00"
         wireframe={true}
+        transparent={true}
+        opacity={1}
       />
     </mesh>
   );
@@ -159,7 +159,7 @@ const SuggestionForm = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 p-8 bg-gray-300">
+    <div className="min-h-screen flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 p-8 bg-[#262836]">
       <div ref={iconContainerRef} className="w-full md:w-2/5 h-96 md:h-[600px]">
         <Suspense
           fallback={
@@ -176,17 +176,17 @@ const SuggestionForm = () => {
         </Suspense>
       </div>
       <div className="w-full md:w-1/3">
-        <h2 className="text-5xl font-bold mb-3">Get in Touch</h2>
+        <h2 className="text-5xl font-bold mb-3 text-white">Get in Touch</h2>
         <p className="text-gray-500 mb-10 text-lg">
           Have a suggestion or a project in mind? Let's talk.
         </p>
         <form className="space-y-8">
           <InputField placeholder="Your Name" name="name" />
-          <InputField type="email" placeholder="Your Email" name="email" />
+          <InputField type="email" placeholder="Your Email" name="email"/>
           <InputField placeholder="Your Message" name="message" as="textarea" />
           <button
             type="submit"
-            className="bg-black cursor-pointer text-white font-bold py-4 px-10 rounded-full hover:bg-gray-800 transition-colors duration-300 text-lg"
+            className="bg-black cursor-pointer border border-white text-white font-bold py-4 px-10 rounded-full hover:bg-gray-800 transition-colors duration-300 text-lg"
           >
             Send Message
           </button>
@@ -202,7 +202,7 @@ export default function ContactSection() {
     <div className="font-satoshi contact-section ">
       <main className="relative bg-white z-10">
         <SuggestionForm />
-        <div className="h-12 bg-gray-300"></div>{" "}
+        <div className="h-12 bg-[#262836]"></div>{" "}
         {/* Spacer to ensure footer reveal is smooth */}
       </main>
       <div className="sticky bottom-0 bg-[#46535e33]">

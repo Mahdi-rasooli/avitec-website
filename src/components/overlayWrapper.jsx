@@ -41,10 +41,12 @@ const ParallaxSection = ({ children, className = '' }) => {
     <section ref={sectionRef} className={`relative isolate min-h-screen overflow-hidden ${className}`}>
       <div
         ref={bgRef}
-        className="absolute inset-0 -z-10"
+        className="absolute inset-0 z-0"
         style={{
-          backgroundImage: `url(https://assets.codepen.io/16327/portrait-pattern-2.jpg)`,
+          backgroundImage: 'url(/img17.jpg)',
           backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
         }}
       />
       <div className="relative z-10">
