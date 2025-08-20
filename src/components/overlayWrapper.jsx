@@ -43,7 +43,7 @@ const ParallaxSection = ({ children, className = '' }) => {
         ref={bgRef}
         className="absolute inset-0 -z-10"
         style={{
-          backgroundImage: `url(https://assets.codepen.io/16327/portrait-pattern-4.jpg)`,
+          backgroundImage: `url(https://assets.codepen.io/16327/portrait-pattern-2.jpg)`,
           backgroundSize: 'cover',
         }}
       />
@@ -55,10 +55,36 @@ const ParallaxSection = ({ children, className = '' }) => {
 };
 
 const OverlayWrapper = () => {
+  const scrollCompRef = useRef(null);
+  const stickyContainerRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const scrollComp = scrollCompRef.current;
+    const stickyContainer = stickyContainerRef.current;
+    if (!scrollComp || !stickyContainer) return;
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: stickyContainer,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: true,
+      }
+    });
+
+    tl.to(scrollComp, { filter: 'blur(10px)', ease: 'power1.inOut' });
+
+    return () => {
+      tl.kill();
+    };
+  }, []);
+
   return (
     <div>
-      <Scroll />
-      <div style={{ position: 'sticky', top: '0', zIndex: 10 }}>
+      <div ref={scrollCompRef}>
+        <Scroll />
+      </div>
+      <div ref={stickyContainerRef} style={{ position: 'sticky', top: '0', zIndex: 10 }}>
         <ParallaxSection>
           <BeliefSection />
         </ParallaxSection>

@@ -587,8 +587,8 @@ const Scroll = () => {
 
   // Desktop Layout
   return (
-    <div ref={componentRef} className={`relative overflow-hidden bg-[#262836]`}>
-      <div className="h-screen w-screen overflow-hidden relative">
+    <div ref={componentRef} className={`relative bg-[#262836]`}>
+      <div className="h-screen w-screen relative">
         {/* Hero Section */}
         <section ref={heroSectionRef} className="flex flex-col md:flex-row text-white">
           <div ref={heroBackgroundRef} className="absolute inset-0 bg-[#262836]"></div>
