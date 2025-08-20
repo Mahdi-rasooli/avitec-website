@@ -24,7 +24,7 @@ const RotatingIcon = () => {
     <mesh ref={meshRef} scale={0.8}>
       <icosahedronGeometry args={[1.5, 0]} />
       <meshStandardMaterial
-        color="#7CFC00"
+        color="#ffffff"
         wireframe={true}
         transparent={true}
         opacity={1}
@@ -186,7 +186,7 @@ const SuggestionForm = () => {
           <InputField placeholder="Your Message" name="message" as="textarea" />
           <button
             type="submit"
-            className="bg-black cursor-pointer border border-white text-white font-bold py-4 px-10 rounded-full hover:bg-gray-800 transition-colors duration-300 text-lg"
+            className="bg-[#262836] cursor-pointer border border-white text-white font-bold py-4 px-10 rounded-full hover:bg-gray-800 transition-colors duration-300 text-lg"
           >
             Send Message
           </button>

@@ -40,7 +40,7 @@ const ModernGalleryCarousel = () => {
     },
     {
       id: 5,
-      url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=500&fit=crop&crop=entropy&auto=format",
+      url: "https://images.unsplash.com/photo-157101961344-1cb2f99b2d8b?w=800&h=500&fit=crop&crop=entropy&auto=format",
       title: "Future Fragments",
       subtitle: "Tomorrow's aesthetic today",
       description: "Glimpses of what's to come",

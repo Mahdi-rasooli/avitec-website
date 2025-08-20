@@ -43,7 +43,7 @@ const ParallaxSection = ({ children, className = '' }) => {
         ref={bgRef}
         className="absolute inset-0 z-0"
         style={{
-          backgroundImage: 'url(/img17.jpg)',
+          backgroundImage: 'url(/bg6.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
