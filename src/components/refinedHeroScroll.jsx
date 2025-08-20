@@ -595,8 +595,8 @@ const Scroll = () => {
 
           <div ref={heroContentRef} className="relative flex-1 flex justify-between items-center px-8 md:px-12 py-8 md:py-25 z-10">
             <div className="flex flex-col justify-center flex-1">
-              <h1 className="text-5xl md:text-6xl font-bold mb-8 md:mb-12 leading-tight tracking-wide">
-                AVITEC is the
+              <h1 className="text-5xl md:text-6xl  mb-8 md:mb-12 leading-tight tracking-wide">
+                <span><span className='font-bold text-7xl'>AVITEC</span> is the</span>
                 <br />
                 <span className="font-normal">Engineering</span>
                 <br />
