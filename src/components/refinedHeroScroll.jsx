@@ -92,14 +92,15 @@ const Scroll = () => {
   useEffect(() => {
     if (isMobile) return;
     const lenis = new Lenis({
-      // lerp: 0.1,
-      lerp: 0.07,
-      smoothWheel: true,
-      smoothTouch: false,
-      wheelMultiplier: 1.0,
-      touchMultiplier: 0.9,
-      normalizeWheel: true,
-      syncTouch: true,
+      // lerp: 0.3,
+      lerp: 0.1,           // inertia/smoothness: lower = smoother but slower response, higher = snappier
+      smoothWheel: true,   // keep this true for mouse wheel
+      smoothTouch: false,  // disable for mobile
+      // wheelMultiplier: 0.8,  // how strong mouse wheel feels (try 1.2–1.5 if it feels too fast)
+      wheelMultiplier: 0.7,
+      touchMultiplier: 1,  // touch sensitivity (not used since smoothTouch is false)
+      normalizeWheel: true,// keeps trackpad/wheel consistent
+      syncTouch: true,     // sync touch scroll on desktop (keep true),
     });
     lenisRef.current = lenis;
 
@@ -319,15 +320,14 @@ const Scroll = () => {
 
         const masterTimeline = gsap.timeline({
             scrollTrigger: {
-                trigger: componentRef.current,
-                pin: true,
-                // scrub: 0.2,
-                scrub: true,
-                start: 'top top',
-                end: '+=420%',
-                anticipatePin: 1,
-                fastScrollEnd: true,
-                invalidateOnRefresh: true,
+              trigger: componentRef.current,
+              pin: true,
+              scrub: 0.04,             // smooths animation progress with scroll
+              start: 'top top',
+              end: '+=420%',          // play with % if too long/short
+              anticipatePin: 1,       // reduces jump when pinning
+              fastScrollEnd: true,    // can sometimes "snap" if scrolled fast
+              invalidateOnRefresh: true,
 
                 onUpdate: (self) => {
                     const progress = self.progress;
@@ -401,7 +401,7 @@ const Scroll = () => {
                             clearThumbBorder();
                         }
 
-                        // Text animation logic remains unchanged and works perfectly
+                        // Text animation logic
                         const textRefs = [text1Ref, text2Ref, text3Ref];
                         textRefs.forEach((textRef, index) => {
                             let opacity = 0; let y = 60; let scale = 0.95;
@@ -417,18 +417,14 @@ const Scroll = () => {
                                 y = 60 * (1 - gsap.parseEase("power2.out")(fadeInProgress));
                                 scale = 0.95 + (0.05 * gsap.parseEase("back.out(1.2)")(fadeInProgress));
                             }
-                            if (index === 0 && currentSlide === 0 && slideTransitionProgress < 0.5) {
-                                const fadeInProgress = slideTransitionProgress / 0.5;
-                                opacity = gsap.parseEase("power2.out")(fadeInProgress);
-                                y = 60 * (1 - gsap.parseEase("power2.out")(fadeInProgress));
-                                scale = 0.95 + (0.05 * gsap.parseEase("back.out(1.2)")(fadeInProgress));
-                            }
+                            // ---- FIX #1: REMOVED a block of code here that caused the first text to fade in slowly.
+                            // The logic above now correctly handles making it appear instantly.
                             opacity = gsap.utils.clamp(0, 1, opacity); y = gsap.utils.clamp(0, 60, y); scale = gsap.utils.clamp(0.95, 1, scale);
                             gsap.set(textRef.current, { opacity: opacity, y: y, scale: scale, rotationX: y * 0.3, transformOrigin: "center bottom" });
                             if (textRef.current) {
                                 const title = titles[index]; const paragraph = paragraphs[index];
                                 if (title) { gsap.set(title, { opacity: opacity, y: y * 0.8, scale: scale, filter: `blur(${(1 - opacity) * 3}px)` }); }
-                                if (paragraph) { gsap.set(paragraph, { opacity: opacity * 0.9, y: y * 1.2, scale: scale * 0.98, filter: `blur(${(1 - opacity) * 2}px)`, delay: opacity > 0 ? 0.1 : 0 }); }
+                                if (paragraph) { gsap.set(paragraph, { opacity: opacity * 0.9, y: y * 1.2, scale: scale * 0.98, filter: `blur(${(1 - opacity) * 2}px)` }); }
                             }
                         });
 
@@ -500,7 +496,8 @@ const Scroll = () => {
                         if (text3Ref.current) {
                             const title = titles[2]; const paragraph = paragraphs[2];
                             if (title) { gsap.set(title, { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }); }
-                            if (paragraph) { gsap.set(paragraph, { opacity: 0.9, y: 0, scale: 1, filter: 'blur(0px)' }); }
+                            // ---- FIX #2: Changed scale from 1 to 0.98 to match the end state of the animation, preventing a "jump".
+                            if (paragraph) { gsap.set(paragraph, { opacity: 0.9, y: 0, scale: 0.98, filter: 'blur(0px)' }); }
                         }
 
                         if (progressBarRef.current && spotlightRef.current) {
@@ -534,7 +531,7 @@ const Scroll = () => {
       <div className="bg-[#262836] min-h-screen">
         {/* Mobile Hero Section */}
         <div className="px-6 py-12 text-white">
-          <h1 className="text-4xl font-bold mb-8 leading-tight">
+          <h1 className="text-4xl font-bold mb-6 leading-tight md:leading-none">
             AVITEC is the
             <br />
             <span className="font-normal">Engineering</span>
@@ -597,14 +594,14 @@ const Scroll = () => {
 
           <div ref={heroContentRef} className="relative flex-1 flex justify-between items-center px-8 md:px-12 py-8 md:py-25 z-10">
             <div className="flex flex-col justify-center flex-1">
-              <h1 className="text-5xl md:text-6xl  mb-8 md:mb-12 leading-tight tracking-wide">
-                <span><span className='font-bold text-7xl'>AVITEC</span> is the</span>
+              <h1 className="text-5xl md:text-4xl lg:text-8xl mb-6 md:mb-8 leading-none tracking-wide font-extrabold">
+                <span className='text-8xl'>AVITEC</span>
                 <br />
-                <span className="font-normal">Engineering</span>
+                <span>Is in the</span>
                 <br />
-                <span className="font-normal">Procurement</span>
+                <span>Bussines of </span>
                 <br />
-                <span className="font-normal">Construction</span>
+                <span>The Future</span>
               </h1>
               <button className="group relative overflow-hidden cursor-pointer bg-red-600 text-white px-8 py-3 text-lg font-medium inline-flex items-center gap-2 w-fit">
                 <span className="absolute inset-0 border border-red-600 bg-[#262836] transform -translate-x-full transition-transform duration-500 ease-in-out group-hover:translate-x-0"></span>
@@ -613,12 +610,12 @@ const Scroll = () => {
               </button>
             </div>
 
-            <div className="flex flex-col gap-6 md:gap-8 text-lg justify-center px-17 py-12 bg-[#46535e33] min-h-screen w-80 absolute right-0 top-0">
-              {['Navigate', 'Engineering', 'Procurement', 'Construction'].map((item, index) => (
-                <div key={item} className="group cursor-pointer" onClick={() => index > 0 && handleTagClick(item.toLowerCase())}>
+            <div className="flex flex-col gap-6 md:gap-8 text-lg justify-center px-29 py-12 bg-[#46535e33] min-h-screen w-120 absolute right-0 top-0">
+              {['Engineering', 'Procurement', 'Construction'].map((item, index) => (
+                <div key={item} className="group cursor-pointer" onClick={() => handleTagClick(item.toLowerCase())}>
                   <div className="inline-flex items-center relative">
-                    <span className={`text-gray-300 group-hover:text-white transition-colors duration-300 ${item === 'Navigate' ? '' : 'underline hover:no-underline transition-all duration-300'}`}>{item}</span>
-                    {index > 0 && <MoveRight size={20} className=" ml-1 text-gray-400 group-hover:text-white transition-colors duration-300" />}
+                    <span className={`text-gray-300 text-4xl group-hover:text-white transition-colors duration-300 ${item === 'Navigate' ? '' : 'underline hover:no-underline transition-all duration-300'}`}>{item}</span>
+                    {<MoveRight size={30} className=" ml-1 text-gray-400 group-hover:text-white transition-colors duration-300" />}
                     <div className={`${item === 'Navigate' ? "" : "absolute bottom-0 left-0 w-0 h-px bg-white transition-all duration-300 group-hover:w-full"}`}></div>
                   </div>
                 </div>
@@ -641,10 +638,10 @@ const Scroll = () => {
               />
               <div ref={index === 0 ? overlay1Ref : index === 1 ? overlay2Ref : overlay3Ref} className="absolute inset-0 bg-black"></div>
               <div ref={textRef} className="absolute left-4 md:left-16 top-1/4 z-10 text-white">
-                <h2 className="text-3xl md:text-6xl font-bold mb-6 leading-tight">
-                  {index === 0 ? "Precision Engineering" : index === 1 ? "Strategic Procurement" : "Excellence in Construction"}
+                <h2 className="text-3xl md:text-7xl font-extrabold mb-6 leading-tight">
+                  {index === 0 ? "Engineering" : index === 1 ? "Procurement" : "Construction"}
                 </h2>
-                <p className="text-lg md:text-xl opacity-90 max-w-lg leading-relaxed mb-8">
+                <p className="text-lg md:text-2xl font-bold opacity-90 max-w-lg leading-relaxed mb-8">
                   {slides[index].subtext}
                 </p>
               </div>
@@ -686,7 +683,7 @@ const Scroll = () => {
         <div ref={navigationRef} className="fixed bottom-8 md:bottom-12 left-4 md:left-12 z-50 opacity-0 px-4 md:px-0">
           <div className="relative mb-4 md:mb-6">
             <div className="w-full h-1 bg-gradient-to-r from-black/20 via-black/40 to-black/20 shadow-2xl"></div>
-            <div ref={progressBarRef} className="absolute top-0 left-0 h-1 bg-purple-500 shadow-lg shadow-blue-500/50" style={{ width: '270px' }}></div>
+            <div ref={progressBarRef} className="absolute top-0 left-0 h-1 bg-indigo-500 shadow-lg shadow-blue-500/50" style={{ width: '270px' }}></div>
           </div>
           <div className="flex gap-4 md:gap-6 relative overflow-hidden">
             {/* The base thumbnails */}

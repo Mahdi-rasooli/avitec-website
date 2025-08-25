@@ -7,6 +7,7 @@ import MaskVideo from "@/components/testMaskVideo";
 import HomeSections from "@/components/overlayWrapper";
 import ScrollHeader from "@/components/header";
 import ModernGalleryCarousel from "@/components/gallery";
+import TestVideoMask from "@/components/testMask";
 
 export default function Home() {
   return (
@@ -19,6 +20,7 @@ export default function Home() {
       {/* <WorkSection /> */}
       <SecondCompo />
       <VideoMaskTransition />
+      {/* <TestVideoMask /> */}
       {/* <MaskVideo /> */}
       <ContactSection />
     </div>
