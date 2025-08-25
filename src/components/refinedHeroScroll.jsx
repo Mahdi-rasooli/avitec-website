@@ -362,8 +362,8 @@ const Scroll = () => {
                         gsap.set([text1Ref.current, text2Ref.current, text3Ref.current], { opacity: 0, y: 50 });
 
                         if (scrollIndicatorRef.current) {
-                            const startFadeProgress = 0.80;
-                            const fadeDuration = 0.20;
+                            const startFadeProgress = 0.95;
+                            const fadeDuration = 0.05;
                             const scrollIndicatorOpacity = heroProgress <= startFadeProgress ? 1 : Math.max(0, 1 - ((heroProgress - startFadeProgress) / fadeDuration));
                             const xMovement = -70 * heroProgress;
                             const arrowLine = scrollIndicatorRef.current.querySelector('.arrow-line');
@@ -406,10 +406,30 @@ const Scroll = () => {
                         textRefs.forEach((textRef, index) => {
                             let opacity = 0; let y = 60; let scale = 0.95;
                             if (index === currentSlide) {
-                                const fadeOutProgress = slideTransitionProgress > 0.5 ? Math.min(1, (slideTransitionProgress - 0.5) / 0.5) : 0;
-                                opacity = 1 - gsap.parseEase("power2.out")(fadeOutProgress);
-                                y = 60 * gsap.parseEase("power2.in")(fadeOutProgress);
-                                scale = 1 - (0.05 * gsap.parseEase("power1.out")(fadeOutProgress));
+                                // For the first slide, we need to handle fade-in. For others, they are already visible.
+                                if (currentSlide === 0) {
+                                    const fadeInDuration = 0.1; // Animate in over first 10% of scroll
+                                    const fadeOutStart = 0.5;   // Start fade out at 50%
+
+                                    if (slideTransitionProgress < fadeInDuration) {
+                                        const fadeInProgress = slideTransitionProgress / fadeInDuration;
+                                        opacity = gsap.parseEase("power2.out")(fadeInProgress);
+                                        y = 60 * (1 - gsap.parseEase("power2.out")(fadeInProgress));
+                                        scale = 0.95 + (0.05 * gsap.parseEase("back.out(1.2)")(fadeInProgress));
+                                    } else {
+                                        const fadeOutProgress = slideTransitionProgress > fadeOutStart 
+                                            ? Math.min(1, (slideTransitionProgress - fadeOutStart) / (1 - fadeOutStart)) 
+                                            : 0;
+                                        opacity = 1 - gsap.parseEase("power2.out")(fadeOutProgress);
+                                        y = 60 * gsap.parseEase("power2.in")(fadeOutProgress);
+                                        scale = 1 - (0.05 * gsap.parseEase("power1.out")(fadeOutProgress));
+                                    }
+                                } else {
+                                    const fadeOutProgress = slideTransitionProgress > 0.5 ? Math.min(1, (slideTransitionProgress - 0.5) / 0.5) : 0;
+                                    opacity = 1 - gsap.parseEase("power2.out")(fadeOutProgress);
+                                    y = 60 * gsap.parseEase("power2.in")(fadeOutProgress);
+                                    scale = 1 - (0.05 * gsap.parseEase("power1.out")(fadeOutProgress));
+                                }
                             }
                             if (index === currentSlide + 1 && slideTransitionProgress > 0.6) {
                                 const fadeInProgress = Math.min(1, (slideTransitionProgress - 0.6) / 0.4);
@@ -417,8 +437,7 @@ const Scroll = () => {
                                 y = 60 * (1 - gsap.parseEase("power2.out")(fadeInProgress));
                                 scale = 0.95 + (0.05 * gsap.parseEase("back.out(1.2)")(fadeInProgress));
                             }
-                            // ---- FIX #1: REMOVED a block of code here that caused the first text to fade in slowly.
-                            // The logic above now correctly handles making it appear instantly.
+                            // The logic above handles the fade-in and fade-out of texts based on scroll.
                             opacity = gsap.utils.clamp(0, 1, opacity); y = gsap.utils.clamp(0, 60, y); scale = gsap.utils.clamp(0.95, 1, scale);
                             gsap.set(textRef.current, { opacity: opacity, y: y, scale: scale, rotationX: y * 0.3, transformOrigin: "center bottom" });
                             if (textRef.current) {
