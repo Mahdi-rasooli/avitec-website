@@ -8,6 +8,7 @@ import HomeSections from "@/components/overlayWrapper";
 import ScrollHeader from "@/components/header";
 import ModernGalleryCarousel from "@/components/gallery";
 import TestVideoMask from "@/components/testMask";
+import TestHero from "@/components/heroTest";
 
 export default function Home() {
   return (
@@ -15,12 +16,13 @@ export default function Home() {
       <ScrollHeader />
       {/* <Scroll /> */}
       {/* <BeliefSection /> */}
+      {/* <TestHero /> */}
       <HomeSections />
       {/* <ModernGalleryCarousel /> */}
       {/* <WorkSection /> */}
       <SecondCompo />
-      <VideoMaskTransition />
-      {/* <TestVideoMask /> */}
+      {/* <VideoMaskTransition /> */}
+      <TestVideoMask />
       {/* <MaskVideo /> */}
       <ContactSection />
     </div>

@@ -2,11 +2,11 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowUp } from 'lucide-react'; // Assuming you're using lucide-react for the icon
+import { ArrowUp } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
-// You'll need to define these components or replace them with standard HTML elements
+// Helper Components (unchanged)
 const SectionTitle = ({ children }) => <h3 className="text-xl font-semibold mb-4 text-gray-400">{children}</h3>;
 const AnimatedLink = ({ children, href }) => <a href={href} className="text-gray-300 hover:text-white transition-colors duration-300">{children}</a>;
 
@@ -15,71 +15,82 @@ export default function MaskVideo() {
     const backgroundVideoRef = useRef(null);
     const textMaskRef = useRef(null);
     const maskedVideoRef = useRef(null);
-    const footerRef = useRef(null); // <-- Ref for the footer
+    const footerRef = useRef(null);
 
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     useEffect(() => {
+        // --- NOTE: Ensure video files are optimized for web (compressed, correct format) for best performance ---
+        
         const container = containerRef.current;
         const backgroundVideo = backgroundVideoRef.current;
         const textMask = textMaskRef.current;
         const maskedVideo = maskedVideoRef.current;
         const footerEl = footerRef.current;
 
-        // Initial states
+        // --- 1. IMPROVED: Set initial states for the new "zoom in" animation ---
         gsap.set(maskedVideo, { opacity: 0 });
-        gsap.set(textMask, { scale: 6, opacity: 0, transformOrigin: "center center" });
+        // Start smaller and slightly down to create the "coming from screen" effect
+        gsap.set(textMask, { 
+            scale: 0.7, 
+            y: '20%', // Start slightly lower
+            opacity: 0, 
+            transformOrigin: "center center",
+            force3D: true, // IMPORTANT: Offloads animation to the GPU for smoothness
+        });
+        gsap.set(footerEl, { y: '100%', force3D: true });
 
-        // Prepare the footer to slide up
-        if (footerEl) {
-            gsap.set(footerEl, { y: '100%', force3D: true });
-        }
 
         const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: container,
                 start: "top top",
-                end: "+=220%",
-                scrub: 1,
+                end: "+=220%", // Increased duration for a more graceful animation
+                scrub: 1.2,    // Slightly adjusted scrub for a smoother feel
                 pin: true,
                 anticipatePin: 1,
             },
         });
 
+        // --- 2. REVISED: New, more dynamic animation timeline ---
         tl.to(textMask, {
             opacity: 1,
             scale: 1,
-            duration: 1.2,
-            ease: "power4.out"
-        }, 0.1)
+            y: '0%', // Animate to final position
+            duration: 1.4,
+            ease: "expo.out", // A more impactful easing function
+        }, 0) // Start immediately at timeline position 0
         .to(maskedVideo, {
             opacity: 1,
-            duration: 0.8,
+            duration: 1.4,
             ease: "power2.inOut"
-        }, 0.2)
+        }, 0) // Fade in the masked video along with the text animation
         .to(backgroundVideo, {
             opacity: 0,
-            duration: 0.5,
+            duration: 0.8,
             ease: "power2.inOut"
-        }, 0.3)
-        .add('brandShown', 1.35)
+        }, 0.2) // Fade out the background slightly after the main effect starts
+        .add('brandShown', 1.5) // Label for syncing the exit animation
         .to(maskedVideo, {
             opacity: 0,
             duration: 1,
-            ease: 'none'
+            ease: 'power2.inOut'
         }, 'brandShown')
-        // After the masked video fades, slide the footer up from the bottom
         .to(footerEl, {
             y: '0%',
-            duration: 0.9,
-            ease: 'power2.out'
-        }, 'brandShown+=0.2'); // Adjusted timing for a smooth transition
+            duration: 1.2,
+            ease: 'expo.out' // Use a more dynamic ease for the footer as well
+        }, 'brandShown+=0.1'); // Start footer animation shortly after the masked video starts fading
 
-        return () => ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+        return () => {
+          // Cleanup GSAP triggers on component unmount
+          ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+        }
     }, []);
 
+    // --- JSX is mostly unchanged, just ensure your video source paths are correct ---
     return (
         <div ref={containerRef} className="h-screen relative overflow-hidden bg-black">
             {/* Background Video */}
@@ -90,6 +101,8 @@ export default function MaskVideo() {
                 loop
                 muted
                 playsInline
+                // Consider adding a poster attribute for a fallback image
+                // poster="/path/to/poster-image.jpg" 
             >
                 <source src="/video2.mp4" type="video/mp4" />
             </video>
@@ -110,7 +123,6 @@ export default function MaskVideo() {
                                 fontSize="22vw"
                                 fontWeight="900"
                                 fontFamily="Arial Black, sans-serif"
-                                style={{ transformOrigin: 'center center', transformBox: 'fill-box' }}
                             >
                                 AVITEC
                             </text>
@@ -130,7 +142,7 @@ export default function MaskVideo() {
                 </svg>
             </div>
 
-            {/* The footer that will be animated */}
+            {/* Footer Section (Unchanged) */}
             <footer ref={footerRef} className="bg-black text-white pt-24 pb-12 px-4 sm:px-8 md:px-16 absolute bottom-0 left-0 w-full z-20">
                 <div className="max-w-screen-2xl mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-12">

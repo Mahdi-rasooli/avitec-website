@@ -39,7 +39,7 @@ const slides = [
 // Easing function for smooth scrolling (used in click handlers)
 const easeInOutQuad = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 
-const Scroll = () => {
+const TestHero = () => {
   const componentRef = useRef(null);
   const heroSectionRef = useRef(null);
   const heroBackgroundRef = useRef(null);
@@ -92,15 +92,13 @@ const Scroll = () => {
   useEffect(() => {
     if (isMobile) return;
     const lenis = new Lenis({
-      // lerp: 0.3,
-      lerp: 0.18,           // inertia/smoothness: lower = smoother but slower response, higher = snappier
-      smoothWheel: true,   // keep this true for mouse wheel
-      smoothTouch: false,  // disable for mobile
-      // wheelMultiplier: 0.8,  // how strong mouse wheel feels (try 1.2–1.5 if it feels too fast)
+      lerp: 0.18,
+      smoothWheel: true,
+      smoothTouch: false,
       wheelMultiplier: 0.7,
-      touchMultiplier: 1,  // touch sensitivity (not used since smoothTouch is false)
-      normalizeWheel: true,// keeps trackpad/wheel consistent
-      syncTouch: true,     // sync touch scroll on desktop (keep true),
+      touchMultiplier: 1,
+      normalizeWheel: true,
+      syncTouch: true,
     });
     lenisRef.current = lenis;
 
@@ -170,14 +168,12 @@ const Scroll = () => {
     const targetProgress = HERO_END + normalized * (IMAGE_END - HERO_END);
     const targetScrollY = st.start + targetProgress * (st.end - st.start);
 
-    // Smooth scroll to the computed y-position
     if (lenisRef.current) {
       lenisRef.current.scrollTo(targetScrollY, { duration: 1.2, easing: easeInOutQuad });
     } else {
       gsap.to(window, { scrollTo: { y: targetScrollY }, duration: 1.2, ease: 'power2.inOut' });
     }
 
-    // Update thumbnail progress/spotlight to match clicked index using actual DOM measurements
     requestAnimationFrame(() => {
       const thumbs = baseThumbRefs.current;
       if (!progressBarRef.current || !spotlightRef.current || !thumbs || !thumbs[0]) return;
@@ -209,7 +205,6 @@ const Scroll = () => {
       gsap.to(window, { scrollTo: { y: targetScrollY }, duration: 1.2, ease: 'power2.inOut' });
     }
 
-    // Update progress bar / spotlight to match selected thumbnail
     requestAnimationFrame(() => {
       const thumbs = baseThumbRefs.current;
       if (!progressBarRef.current || !spotlightRef.current || !thumbs || !thumbs[0]) return;
@@ -286,17 +281,10 @@ const Scroll = () => {
         gsap.set(componentRef.current, { height: '100vh' });
         gsap.set(heroSection, { position: 'absolute', left: 0, top: 0, width: '70%', height: '100%', zIndex: 1, overflow: 'hidden' });
         gsap.set(imageContainer, { position: 'absolute', left: '70%', top: 0, width: '30%', height: '100%', zIndex: 2 });
-
-        // --- MODIFICATION START ---
-        // 1. All images are stacked at the start (x: '0%').
         gsap.set([image1Ref.current, image2Ref.current, image3Ref.current], { x: '0%' });
-        
-        // 2. The 2nd and 3rd images are hidden with a clip-path for a RIGHT-TO-LEFT reveal.
         gsap.set([image2Ref.current, image3Ref.current], {
             clipPath: "polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%)"
         });
-        // --- MODIFICATION END ---
-
         gsap.set([image1Ref.current, image2Ref.current, image3Ref.current].map(ref => ref.querySelector('.slide-image')), { filter: 'none', scale: 1, willChange: 'transform, opacity, filter' });
         gsap.set([overlay1Ref.current, overlay2Ref.current, overlay3Ref.current], { opacity: (i) => i === 0 ? 0.25 : 0.35 });
         gsap.set([text1Ref.current, text2Ref.current, text3Ref.current], { opacity: 0, y: 50 });
@@ -322,17 +310,21 @@ const Scroll = () => {
             scrollTrigger: {
               trigger: componentRef.current,
               pin: true,
-              scrub: 0.04,             // smooths animation progress with scroll
+              scrub: 0.04,
               start: 'top top',
-              end: '+=420%',          // play with % if too long/short
-              anticipatePin: 1,       // reduces jump when pinning
-              fastScrollEnd: true,    // can sometimes "snap" if scrolled fast
+              end: '+=420%',
+              anticipatePin: 1,
+              fastScrollEnd: true,
               invalidateOnRefresh: true,
 
                 onUpdate: (self) => {
                     const progress = self.progress;
                     const heroEnd = 0.34;
                     const imageEnd = 0.86;
+
+                    // --- MODIFICATION: Define a new transition zone for the handoff ---
+                    const transitionStart = 0.30;
+                    const transitionEnd = 0.40;
 
                     if (progress > heroEnd) {
                         if (!navVisible.current) {
@@ -355,17 +347,10 @@ const Scroll = () => {
                         setImageLeft(70 - 70 * heroProgress);
                         setImageWidth(30 + 70 * heroProgress);
                         gsap.set(image1Ref.current.querySelector('.slide-image'), { filter: `blur(${8 - 8 * heroProgress}px)` });
-                        // --- MODIFICATION START ---
-                        // Ensure other images are hidden from the right during hero phase
                         gsap.set([image2Ref.current, image3Ref.current], { clipPath: "polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%)" });
-                        // --- MODIFICATION END ---
-                        gsap.set([text1Ref.current, text2Ref.current, text3Ref.current], { opacity: 0, y: 50 });
-
+                        
+                        // Handle scroll indicator expansion
                         if (scrollIndicatorRef.current) {
-                            const startFadeProgress = 0.95;
-                            const fadeDuration = 0.05;
-                            const scrollIndicatorOpacity = heroProgress <= startFadeProgress ? 1 : Math.max(0, 1 - ((heroProgress - startFadeProgress) / fadeDuration));
-                            const xMovement = -70 * heroProgress;
                             const arrowLine = scrollIndicatorRef.current.querySelector('.arrow-line');
                             const arrowIcon = scrollIndicatorRef.current.querySelector('svg');
                             if (arrowLine && arrowIcon) {
@@ -374,9 +359,7 @@ const Scroll = () => {
                                 const iconOpacity = Math.min(1, heroProgress * 6);
                                 arrowIcon.style.opacity = iconOpacity;
                             }
-                            gsap.set(scrollIndicatorRef.current, { autoAlpha: scrollIndicatorOpacity, x: `${xMovement}vw` });
                         }
-
                     }
                     else if (progress <= imageEnd) {
                         const imageProgress = (progress - heroEnd) / (imageEnd - heroEnd);
@@ -405,31 +388,29 @@ const Scroll = () => {
                         const textRefs = [text1Ref, text2Ref, text3Ref];
                         textRefs.forEach((textRef, index) => {
                             let opacity = 0; let y = 60; let scale = 0.95;
-                            if (index === currentSlide) {
-                                // For the first slide, we need to handle fade-in. For others, they are already visible.
-                                if (currentSlide === 0) {
-                                    const fadeInDuration = 0.1; // Animate in over first 10% of scroll
-                                    const fadeOutStart = 0.5;   // Start fade out at 50%
-
-                                    if (slideTransitionProgress < fadeInDuration) {
-                                        const fadeInProgress = slideTransitionProgress / fadeInDuration;
-                                        opacity = gsap.parseEase("power2.out")(fadeInProgress);
-                                        y = 60 * (1 - gsap.parseEase("power2.out")(fadeInProgress));
-                                        scale = 0.95 + (0.05 * gsap.parseEase("back.out(1.2)")(fadeInProgress));
-                                    } else {
-                                        const fadeOutProgress = slideTransitionProgress > fadeOutStart 
-                                            ? Math.min(1, (slideTransitionProgress - fadeOutStart) / (1 - fadeOutStart)) 
-                                            : 0;
-                                        opacity = 1 - gsap.parseEase("power2.out")(fadeOutProgress);
-                                        y = 60 * gsap.parseEase("power2.in")(fadeOutProgress);
-                                        scale = 1 - (0.05 * gsap.parseEase("power1.out")(fadeOutProgress));
-                                    }
+                            // For the first slide, its fade-in is handled by the transition zone.
+                            // This logic will now primarily handle its fade-out.
+                            if (index === 0) {
+                                const fadeOutStart = 0.5 / totalSlides; // Start fade out at 50% of its own duration
+                                if (imageProgress > fadeOutStart) {
+                                    const fadeOutProgress = gsap.utils.mapRange(fadeOutStart, 1 / totalSlides, 0, 1, imageProgress);
+                                    const easedOut = gsap.parseEase("power2.in")(fadeOutProgress);
+                                    opacity = 1 - easedOut;
+                                    y = 60 * easedOut;
+                                    scale = 1 - (0.05 * easedOut);
                                 } else {
-                                    const fadeOutProgress = slideTransitionProgress > 0.5 ? Math.min(1, (slideTransitionProgress - 0.5) / 0.5) : 0;
-                                    opacity = 1 - gsap.parseEase("power2.out")(fadeOutProgress);
-                                    y = 60 * gsap.parseEase("power2.in")(fadeOutProgress);
-                                    scale = 1 - (0.05 * gsap.parseEase("power1.out")(fadeOutProgress));
+                                    // Before fade out, its state is controlled by the transition zone.
+                                    // We set it to full visibility here to ensure it holds.
+                                    opacity = 1; y = 0; scale = 1;
                                 }
+                            }
+
+                            // Logic for subsequent slides remains mostly the same
+                            if (index > 0 && index === currentSlide) {
+                                const fadeOutProgress = slideTransitionProgress > 0.5 ? Math.min(1, (slideTransitionProgress - 0.5) / 0.5) : 0;
+                                opacity = 1 - gsap.parseEase("power2.out")(fadeOutProgress);
+                                y = 60 * gsap.parseEase("power2.in")(fadeOutProgress);
+                                scale = 1 - (0.05 * gsap.parseEase("power1.out")(fadeOutProgress));
                             }
                             if (index === currentSlide + 1 && slideTransitionProgress > 0.6) {
                                 const fadeInProgress = Math.min(1, (slideTransitionProgress - 0.6) / 0.4);
@@ -437,8 +418,12 @@ const Scroll = () => {
                                 y = 60 * (1 - gsap.parseEase("power2.out")(fadeInProgress));
                                 scale = 0.95 + (0.05 * gsap.parseEase("back.out(1.2)")(fadeInProgress));
                             }
-                            // The logic above handles the fade-in and fade-out of texts based on scroll.
+
                             opacity = gsap.utils.clamp(0, 1, opacity); y = gsap.utils.clamp(0, 60, y); scale = gsap.utils.clamp(0.95, 1, scale);
+                            
+                            // Apply animation, but skip index 0 if it's before the transition zone.
+                            if (index === 0 && progress < transitionEnd) return;
+
                             gsap.set(textRef.current, { opacity: opacity, y: y, scale: scale, rotationX: y * 0.3, transformOrigin: "center bottom" });
                             if (textRef.current) {
                                 const title = titles[index]; const paragraph = paragraphs[index];
@@ -447,11 +432,10 @@ const Scroll = () => {
                             }
                         });
 
-                        // --- MODIFICATION START ---
-                        // 3. This section is updated for a RIGHT-TO-LEFT clip-path animation with BLUR effect.
+                        // Image reveal logic
                         if (currentSlide === 0) {
                             const revealPercentage = 100 - (100 * easedSlide);
-                            const blurAmount = 16 * (1 - easedSlide); // Blur decreases as image reveals
+                            const blurAmount = 16 * (1 - easedSlide);
                             gsap.set(image2Ref.current.querySelector('.slide-image'), { filter: `blur(${blurAmount}px)` });
                             gsap.set(image2Ref.current, {
                                 clipPath: `polygon(${revealPercentage}% 0%, 100% 0%, 100% 100%, ${revealPercentage}% 100%)`
@@ -459,14 +443,12 @@ const Scroll = () => {
                             gsap.set(image3Ref.current, {
                                 clipPath: "polygon(100% 0%, 100% 0%, 100% 100%, 100% 100%)"
                             });
-
                             gsap.set(overlay1Ref.current, { opacity: 0.25 + (0.10 * easedSlide) });
                             gsap.set(overlay2Ref.current, { opacity: 0.35 - (0.10 * easedSlide) });
-
                         } else if (currentSlide === 1) {
                             const revealPercentage = 100 - (100 * easedSlide);
-                            const blurAmount = 16 * (1 - easedSlide); // Blur decreases as image reveals
-                            gsap.set(image2Ref.current.querySelector('.slide-image'), { filter: 'blur(0px)' }); // Ensure previous image is clear
+                            const blurAmount = 16 * (1 - easedSlide);
+                            gsap.set(image2Ref.current.querySelector('.slide-image'), { filter: 'blur(0px)' });
                             gsap.set(image3Ref.current.querySelector('.slide-image'), { filter: `blur(${blurAmount}px)` });
                             gsap.set(image2Ref.current, {
                                 clipPath: `polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)`
@@ -474,12 +456,11 @@ const Scroll = () => {
                             gsap.set(image3Ref.current, {
                                 clipPath: `polygon(${revealPercentage}% 0%, 100% 0%, 100% 100%, ${revealPercentage}% 100%)`
                             });
-                            
                             gsap.set(overlay2Ref.current, { opacity: 0.25 + (0.10 * easedSlide) });
                             gsap.set(overlay3Ref.current, { opacity: 0.35 * (1 - easedSlide) });
                         }
-                        // --- MODIFICATION END ---
                         
+                        // Progress bar logic
                         if (progressBarRef.current && spotlightRef.current) {
                             const thumbnailWidth = 270; const thumbnailGap = 24;
                             const maxTravelDistance = (slides.length - 1) * (thumbnailWidth + thumbnailGap);
@@ -500,25 +481,19 @@ const Scroll = () => {
                         if (scrollIndicatorRef.current) {
                             gsap.set(scrollIndicatorRef.current, { autoAlpha: 0 });
                         }
-                        
-                        // Set final state for images: all fully revealed and clear
                         gsap.set([image1Ref.current, image2Ref.current, image3Ref.current], {
                             clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)'
                         });
                         gsap.set([image2Ref.current.querySelector('.slide-image'), image3Ref.current.querySelector('.slide-image')], { filter: 'blur(0px)' });
                         gsap.set(overlay3Ref.current, { opacity: 0 });
-
                         gsap.set(text1Ref.current, { opacity: 0, y: 60, scale: 0.95 });
                         gsap.set(text2Ref.current, { opacity: 0, y: 60, scale: 0.95 });
                         gsap.set(text3Ref.current, { opacity: 1, y: 0, scale: 1, rotationX: 0, filter: 'blur(0px)' });
-
                         if (text3Ref.current) {
                             const title = titles[2]; const paragraph = paragraphs[2];
                             if (title) { gsap.set(title, { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }); }
-                            // ---- FIX #2: Changed scale from 1 to 0.98 to match the end state of the animation, preventing a "jump".
                             if (paragraph) { gsap.set(paragraph, { opacity: 0.9, y: 0, scale: 0.98, filter: 'blur(0px)' }); }
                         }
-
                         if (progressBarRef.current && spotlightRef.current) {
                             const thumbnailWidth = 270; const thumbnailGap = 24;
                             const maxTravelDistance = (slides.length - 1) * (thumbnailWidth + thumbnailGap);
@@ -529,6 +504,37 @@ const Scroll = () => {
                             gsap.set(spotlightRef.current, { clipPath: `inset(0px ${Math.max(0, rightInset)}px 0px ${leftInset}px)` });
                         }
                         applyThumbBorder(slides.length - 1);
+                    }
+
+                    // --- MODIFICATION: New unified transition zone logic ---
+                    if (progress < transitionStart) {
+                        // Before the transition, indicator is visible, text is hidden.
+                        gsap.set(scrollIndicatorRef.current, { autoAlpha: 1, xPercent: 0 });
+                        gsap.set(text1Ref.current, { opacity: 0, y: 60 });
+                    } else if (progress >= transitionStart && progress <= transitionEnd) {
+                        const transitionProgress = gsap.utils.mapRange(transitionStart, transitionEnd, 0, 1, progress);
+                        const easedTransition = gsap.parseEase("power1.inOut")(transitionProgress);
+
+                        // Animate indicator out (fade and slide left)
+                        gsap.set(scrollIndicatorRef.current, {
+                            autoAlpha: 1 - easedTransition,
+                            xPercent: -120 * easedTransition
+                        });
+
+                        // Animate first text in
+                        const easedIn = gsap.parseEase("power2.out")(transitionProgress);
+                        const opacity = easedIn;
+                        const y = 60 * (1 - easedIn);
+                        const scale = 0.95 + (0.05 * easedIn);
+                        gsap.set(text1Ref.current, { opacity: opacity, y: y, scale: scale, rotationX: y * 0.3, transformOrigin: "center bottom" });
+                        if(text1Ref.current){
+                           const title = titles[0]; const paragraph = paragraphs[0];
+                           if (title) { gsap.set(title, { opacity: opacity, y: y * 0.8, scale: scale, filter: `blur(${(1 - opacity) * 3}px)` }); }
+                           if (paragraph) { gsap.set(paragraph, { opacity: opacity * 0.9, y: y * 1.2, scale: scale * 0.98, filter: `blur(${(1 - opacity) * 2}px)` }); }
+                        }
+                    } else {
+                        // After the transition, indicator is hidden. Text state is handled by the main logic.
+                        gsap.set(scrollIndicatorRef.current, { autoAlpha: 0, xPercent: -120 });
                     }
                 },
             },
@@ -595,9 +601,8 @@ const Scroll = () => {
     );
   }
 
-  // ---- FIX #1: Calculate total width of thumbnails for correct sizing ----
   const thumbnailWidth = 270;
-  const thumbnailGap = 24; // Corresponds to md:gap-6 (1.5rem = 24px)
+  const thumbnailGap = 24;
   const trackWidthStyle = {
     width: `${(slides.length * thumbnailWidth) + ((slides.length - 1) * thumbnailGap)}px`
   };
@@ -684,9 +689,9 @@ const Scroll = () => {
         </div>
 
         {/* Horizontal Scroll Right Indicator */}
-        <div ref={scrollIndicatorRef} className="absolute top-1/2 right-4 md:right-16 -translate-y-1/2 z-20 text-white flex items-center space-x-2 md:space-x-4 pointer-events-none">
+        <div ref={scrollIndicatorRef} className="absolute top-1/2 right-16 -translate-y-1/2 z-20 text-white flex items-center space-x-4 pointer-events-none">
           <div className="flex items-center">
-            <span className="text-sm md:text-base opacity-75 mr-4">Scroll</span>
+            <span className="text-base opacity-75 mr-4">Scroll</span>
             <div className="relative overflow-hidden w-48">
               <div className="flex items-center">
                 <div className="arrow-line h-px bg-white/50 transition-all duration-500 ease-out" style={{ width: '32px' }}></div>
@@ -732,7 +737,6 @@ const Scroll = () => {
               ref={spotlightRef}
               className="absolute top-0 left-0 h-full pointer-events-none z-20 overflow-hidden"
             >
-              {/* ---- FIX #1: Applied explicit width to inner container ---- */}
               <div className="h-full flex gap-4 md:gap-6" style={trackWidthStyle}>
                 {slides.map((slide, i) => (
                   <div
@@ -761,4 +765,4 @@ const Scroll = () => {
   );
 };
 
-export default Scroll;
+export default TestHero;

@@ -54,40 +54,78 @@ export default function WorkSection() {
       const titles = gsap.utils.toArray(".left-content");
       const cards = gsap.utils.toArray(".right .card");
       const wrapperEl = main.current.querySelector('.wrapper');
-
+  
       if (!titles.length || !cards.length || !wrapperEl) return;
-
-      // Set initial states - ALL text and cards start hidden
-      gsap.set(".text-element", { autoAlpha: 0, y: 30 });
-      gsap.set(titles, { autoAlpha: 0 });
-      // ALL cards start hidden including the first one
-      gsap.set(cards, { clipPath: "polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)" });
-
+  
+      // Set initial states - explicitly reveal the FIRST title and FIRST card
+      // (overriding their Tailwind classes) and hide all subsequent items.
+      const nonFirstTitles = titles.slice(1);
+      const nonFirstCards = cards.slice(1);
+  
+      // Ensure the wrapper starts with the first section's gradient so the
+      // background doesn't jump when the timeline runs.
+      if (sectionsData[0] && sectionsData[0].bgGradient) {
+        wrapperEl.className = `wrapper w-full flex overflow-hidden bg-gradient-to-br ${sectionsData[0].bgGradient}`;
+      }
+  
+      // Show first title and its text-elements
+      if (titles.length) {
+        gsap.set(titles[0], { autoAlpha: 1 });
+        gsap.set(titles[0].querySelectorAll('.text-element'), { autoAlpha: 1, y: 0 });
+      }
+  
+      // Hide all other titles and their text-elements
+      if (nonFirstTitles.length) {
+        gsap.set(nonFirstTitles, { autoAlpha: 0 });
+        nonFirstTitles.forEach(t => gsap.set(t.querySelectorAll('.text-element'), { autoAlpha: 0, y: 30 }));
+      }
+  
+      // Reveal first card (override the Tailwind clip-path that hides cards)
+      if (cards.length) {
+        gsap.set(cards[0], { clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)" });
+      }
+  
+      // Hide the remaining cards
+      if (nonFirstCards.length) {
+        gsap.set(nonFirstCards, { clipPath: "polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)" });
+      }
+  
+      // We skip animating the first card because it's already revealed on load,
+      // so reduce the overall scroll length by one card to avoid extra scroll
+      // before the second image appears.
+      const steps = Math.max(0, cards.length - 1);
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: wrapperEl,
           start: "top top",
-          end: "+=" + (cards.length) * 100 + "%",
+          end: "+=" + (steps) * 100 + "%",
           scrub: 1,
           pin: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
         },
       });
-
-      // Animate through each section
+  
+      // Animate through each section. Skip the first card reveal because it
+      // is already visible; start transitions from the second card (i=1).
       cards.forEach((card, i) => {
         const title = titles[i];
         const prevTitle = titles[i - 1];
         const section = sectionsData[i];
-
+  
+        // Skip animating the first card (it's visible by default). For i=0
+        // still ensure any background or title is already present.
+        if (i === 0) {
+          return;
+        }
+  
         // 1. Reveal the current card
         tl.to(card, {
           clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
           duration: 1,
           ease: "power2.inOut",
         });
-
+  
         // 2. Fade out the PREVIOUS section's text (if it exists)
         if (prevTitle) {
           tl.to(prevTitle.querySelectorAll('.text-element'), {
@@ -98,26 +136,31 @@ export default function WorkSection() {
           }, "<");
         }
         
-        // 3. Change background color to match current section
+        // 3. Fade in the CURRENT section's text immediately after prev fade-out completes
+        tl.to(title, { 
+          autoAlpha: 1,
+          duration: 0.3,
+          ease: "power2.out"
+        }, ">"); // ">" places it right after the prev text fade-out ends
+        
+        tl.to(title.querySelectorAll('.text-element'), {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.3,
+          stagger: 0.05,
+          ease: "power2.out"
+        }, "<"); // Start at the same time as the title fade-in (no extra delay)
+  
+        // 4. Change background color to match current section
         if (section.bgGradient) {
-          tl.to(wrapperEl, {
+          // Set the wrapper gradient after the card reveal starts but aligned with text changes
+          tl.set(wrapperEl, {
             className: `wrapper w-full flex overflow-hidden bg-gradient-to-br ${section.bgGradient}`,
-            duration: 0.5,
           }, "<");
         }
-
-        // 4. Fade in the CURRENT section's text at the same time as card reveals
-        tl.to(title, { autoAlpha: 1 }, "<") // Start with the card animation
-          .to(title.querySelectorAll('.text-element'), {
-            autoAlpha: 1,
-            y: 0,
-            duration: 0.4,
-            stagger: 0.08,
-            ease: "power2.out"
-          }, "<+0.2"); // Small delay for better visual flow
-
+  
       });
-
+  
       // Add a final exit animation for the last piece of text
       const lastTitle = titles[titles.length - 1];
       tl.to(lastTitle.querySelectorAll('.text-element'), {
@@ -126,9 +169,9 @@ export default function WorkSection() {
         duration: 0.3,
         ease: "power2.in"
       });
-
+  
     }, main);
-
+  
     return () => ctx.revert();
   }, []);
 
