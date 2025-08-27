@@ -16,8 +16,8 @@ export default function Home() {
       <ScrollHeader />
       {/* <Scroll /> */}
       {/* <BeliefSection /> */}
-      {/* <TestHero /> */}
-      <HomeSections />
+      <TestHero />
+      {/* <HomeSections /> */}
       {/* <ModernGalleryCarousel /> */}
       {/* <WorkSection /> */}
       <SecondCompo />
