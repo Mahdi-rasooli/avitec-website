@@ -4,6 +4,7 @@ import Scroll from './refinedHeroScroll'
 import BeliefSection from './imagesGallery'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import HeroTest from './heroTest'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -84,7 +85,7 @@ const OverlayWrapper = () => {
   return (
     <div>
       <div ref={scrollCompRef}>
-        <Scroll />
+        <HeroTest />
       </div>
       <div ref={stickyContainerRef} style={{ position: 'sticky', top: '0', zIndex: 10 }}>
         <ParallaxSection>
