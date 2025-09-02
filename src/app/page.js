@@ -9,6 +9,7 @@ import ScrollHeader from "@/components/header";
 import ModernGalleryCarousel from "@/components/gallery";
 import TestVideoMask from "@/components/testMask";
 import TestHero from "@/components/heroTest";
+import Projects from "@/components/Projects";
 
 export default function Home() {
   return (
@@ -16,8 +17,9 @@ export default function Home() {
       <ScrollHeader />
       {/* <Scroll /> */}
       {/* <BeliefSection /> */}
-      {/* <TestHero /> */}
-      <HomeSections />
+      <TestHero /> 
+      <Projects />
+      {/* <HomeSections /> */}
       {/* <ModernGalleryCarousel /> */}
       {/* <WorkSection /> */}
       <SecondCompo />

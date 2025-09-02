@@ -10,7 +10,7 @@ export default function TestVideoMask() {
   const backgroundVideoRef = useRef(null);
   const textMaskRef = useRef(null);
   const maskedVideoRef = useRef(null);
-  const greenOverlayRef = useRef(null);
+  const overlaySectionRef = useRef(null);
   const greenTextRef = useRef(null);
   const subsectionRef = useRef(null);
   const subsectionVideoWrapperRef = useRef(null);
@@ -20,15 +20,15 @@ export default function TestVideoMask() {
     const backgroundVideo = backgroundVideoRef.current;
     const textMask = textMaskRef.current;
     const maskedVideo = maskedVideoRef.current;
-    const greenOverlay = greenOverlayRef.current;
+    const overlaySection = overlaySectionRef.current;
 
     // Initial states
     gsap.set(maskedVideo, { opacity: 0 });
     gsap.set(textMask, { scale: 6, opacity: 0, transformOrigin: "center center" });
-    if (greenOverlay) {
+    if (overlaySection) {
       // Ensure overlay sits above the video wrapper when expanded
       // Position at bottom so height animation expands upward (from bottom to top)
-      gsap.set(greenOverlay, {
+      gsap.set(overlaySection, {
         position: 'absolute',
         backgroundColor: '#000000',
         bottom: 0,
@@ -57,7 +57,7 @@ export default function TestVideoMask() {
       scrollTrigger: {
         trigger: container,
         start: "top top",
-        end: "+=300%", // extend a bit to fit the expand + mask sequence
+        end: "+=350%", // extended further to add an extra scroll step
         scrub: 1,
         pin: true,
         anticipatePin: 1,
@@ -127,19 +127,21 @@ export default function TestVideoMask() {
         ease: "power2.inOut"
       }, 'expanded+=0.15')
       .add('brandShown', 'expanded+=1.6')
+      // Hold the brand visible a bit longer before starting the exit/overlay
+      .add('brandHold', 'brandShown+=0.8')
       .to(maskedVideo, {
         opacity: 0,
         duration: 1,
         ease: 'none'
-      }, 'brandShown')
-      .to(greenOverlay, {
+      }, 'brandHold')
+      .to(overlaySection, {
         height: '100vh',
         left: '0vw',
         right: '0vw',
         borderRadius: 0,
         duration: 1,
         ease: 'none'
-      }, 'brandShown');
+      }, 'brandHold');
 
     // Animate overlay text
     if (greenText) {
@@ -161,7 +163,7 @@ export default function TestVideoMask() {
         duration: 0.9,
         ease: 'power3.out',
         stagger: 0.06,
-      }, 'brandShown+=0.15')
+      }, 'brandHold+=0.15')
 
         // Paragraph reveal (headline stays visible)
         .to(paragraphWords, {
@@ -171,9 +173,9 @@ export default function TestVideoMask() {
           duration: 0.9,
           ease: 'power3.out',
           stagger: 0.04,
-        }, 'brandShown+=0.75')
+        }, 'brandHold+=0.75')
 
-        // 🔥 Exit words one by one
+        //  Exit words one by one
         .to([...headlineWords, ...paragraphWords], {
           autoAlpha: 0,
           y: -30,
@@ -181,7 +183,7 @@ export default function TestVideoMask() {
           duration: 0.8,
           ease: 'power2.in',
           stagger: 0.05, // makes them disappear one by one
-        }, 'brandShown+=2.2'); // exit starts later so both are visible first
+        }, 'brandHold+=2.2'); // exit starts later so both are visible first
     }
 
     return () => ScrollTrigger.getAll().forEach(trigger => trigger.kill());
@@ -251,7 +253,7 @@ export default function TestVideoMask() {
         </div>
 
         {/* Overlay with text */}
-        <div ref={greenOverlayRef} className="pointer-events-none overflow-hidden">
+        <div ref={overlaySectionRef} className="pointer-events-none overflow-hidden">
           <div ref={greenTextRef} className="w-full h-full flex items-center justify-center">
             <div className="text-white text-center max-w-4xl mx-auto px-4">
               <h2 className="text-5xl md:text-7xl font-bold">
