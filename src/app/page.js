@@ -14,7 +14,7 @@ import Projects from "@/components/Projects";
 export default function Home() {
   return (
     <div>
-      <ScrollHeader />
+      {/* <ScrollHeader /> */}
       {/* <Scroll /> */}
       {/* <BeliefSection /> */}
       <TestHero /> 
