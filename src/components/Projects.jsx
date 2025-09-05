@@ -8,7 +8,6 @@ gsap.registerPlugin(ScrollTrigger);
 
 // --- MOCK DATA ---
 const mockData = [
-  // ... your mock data ...
   {
     category: "Oil & Gas Processing",
     backgroundUrl: "/img11.jpg",
@@ -46,6 +45,9 @@ const mockData = [
 ];
 
 
+// --- OPTIMIZED HOOKS ---
+
+// General preloader to warm the cache on initial load
 const useImagePreloader = (imageUrlList) => {
   useEffect(() => {
     imageUrlList.forEach((url) => {
@@ -55,21 +57,41 @@ const useImagePreloader = (imageUrlList) => {
   }, [imageUrlList]);
 };
 
+// **NEW** Smart loader to track the status of a specific, critical image
+const useSmartImageLoader = (imageUrl) => {
+  const [isLoaded, setIsLoaded] = useState(false);
 
-// --- SUB-COMPONENTS ---
+  useEffect(() => {
+    if (!imageUrl) return;
 
-// --- CHANGE: The flash animation is now handled entirely inside this component ---
+    setIsLoaded(false);
+    const img = new Image();
+    img.src = imageUrl;
+    img.onload = () => setIsLoaded(true);
+    img.onerror = () => {
+      console.error(`Failed to load image: ${imageUrl}`);
+      setIsLoaded(true); // Unblock the UI even if the image fails
+    };
+  }, [imageUrl]);
+
+  return { isLoaded };
+};
+
+
+// --- SUB-COMPONENTS (Largely unchanged) ---
+
 const AnimatedBackground = ({ imageUrl, animationKey }) => {
   const [currentUrl, setCurrentUrl] = useState(imageUrl);
   const [prevUrl, setPrevUrl] = useState(null);
+
   useEffect(() => {
     if (imageUrl !== currentUrl) {
       setPrevUrl(currentUrl);
       setCurrentUrl(imageUrl);
     }
   }, [imageUrl, currentUrl]);
+
   return (
-    // The animationKey and animate-flash class are now here to isolate the effect
     <div key={animationKey} className="absolute inset-0 -z-10">
       {prevUrl && (<div key={prevUrl} className="absolute inset-0 bg-cover bg-center animate-ken-burns-out" style={{ backgroundImage: `url(${prevUrl})` }} />)}
       <div key={currentUrl} className="absolute inset-0 bg-cover bg-center animate-ken-burns-in" style={{ backgroundImage: `url(${currentUrl})` }} />
@@ -79,19 +101,15 @@ const AnimatedBackground = ({ imageUrl, animationKey }) => {
 };
 
 const Sidebar = ({ categories, selectedIndex, onSelect }) => (
-  <nav className="absolute top-25 left-10 h-full w-80 p-4">
+  <nav className="absolute top-1/4 md:top-1/3 left-4 md:left-10 h-auto w-auto max-w-[250px] md:max-w-xs p-2 md:p-4">
     <div className="w-full h-full p-6 flex flex-col">
       <div className="text-white text-2xl font-bold mb-12 ml-3 tracking-wider">Our Business</div>
       <ul className="space-y-3">
         {categories.map((category, index) => (
           <li key={category}>
-            {/* --- FIX: Reworked the button for a proper slide-in text effect --- */}
             <button onClick={() => onSelect(index)} className={`w-full text-left cursor-pointer border backdrop-blur-md border-white/40 px-4 py-3 rounded-full text-white text-lg font-semibold relative overflow-hidden group transition-colors duration-300 hover:border-red-500 hover:text-red-400 ${selectedIndex === index ? "border-red-500 text-red-500" : ""}`}>
-              {/* This is the white background that slides in */}
               <span className={`absolute top-0 left-0 w-full h-full bg-white transform transition-transform duration-300 ease-out ${selectedIndex === index ? "translate-x-0" : "-translate-x-full"}`}></span>
-              
-              {/* This text now uses mix-blend-mode to invert its color automatically */}
-              <span className={`relative z-10 ${selectedIndex === index ?  "text-red-500" : ""} font-bold`}>
+              <span className={`relative z-10 ${selectedIndex === index ? "text-red-500" : ""} font-bold`}>
                 {category}
               </span>
             </button>
@@ -104,10 +122,8 @@ const Sidebar = ({ categories, selectedIndex, onSelect }) => (
 
 const ProjectCard = ({ project, index }) => (
   <div
-    className="group relative flex-shrink-0 mr-8 backdrop-blur-md cursor-pointer bg-white/10 rounded-2xl shadow-lg border border-white/10 p-6 flex flex-col transition-all duration-300 ease-in-out hover:bg-white hover:border-white/30 animate-slide-in-from-right"
+    className="group relative flex-shrink-0 w-[80vw] sm:w-[380px] h-auto aspect-[1/1] md:aspect-auto md:h-[390px] mr-8 backdrop-blur-md cursor-pointer bg-white/10 rounded-2xl shadow-lg border border-white/10 p-4 md:p-6 flex flex-col transition-all duration-300 ease-in-out hover:bg-white hover:border-white/30 animate-slide-in-from-right"
     style={{
-      width: "450px",
-      height: "460px",
       animationDelay: `${index * 80}ms`,
     }}
   >
@@ -116,13 +132,12 @@ const ProjectCard = ({ project, index }) => (
       <h3 className="text-xl font-bold text-white mt-2 h-16 leading-tight transition-colors duration-300 group-hover:text-black">{project.title}</h3>
     </div>
     <div className="relative flex-grow mt-4 rounded-lg overflow-hidden">
-      <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110" />
+      <img src={project.imageUrl} alt={project.title} draggable="false" className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110" />
     </div>
   </div>
 );
 
-
-const ProgressBar = ({ scrollerRef, categoryData }) => {
+const ProgressBar = ({ scrollerRef, categoryData, selectedCategoryIndex }) => {
   const thumbRef = useRef(null);
   const trackRef = useRef(null);
   const isDraggingThumb = useRef(false);
@@ -180,7 +195,7 @@ const ProgressBar = ({ scrollerRef, categoryData }) => {
     window.addEventListener('pointerup', handlePointerUp);
     const resizeObserver = new ResizeObserver(handleScroll);
     resizeObserver.observe(scroller);
-    handleScroll(); 
+    handleScroll();
 
     return () => {
       scroller.removeEventListener('scroll', handleScroll);
@@ -188,7 +203,7 @@ const ProgressBar = ({ scrollerRef, categoryData }) => {
       window.removeEventListener('pointerup', handlePointerUp);
       resizeObserver.disconnect();
     };
-  }, [scrollerRef, categoryData]); 
+  }, [scrollerRef, categoryData, selectedCategoryIndex]);
 
   return (
     <div ref={trackRef} className="w-full h-1 bg-white/20 rounded-full cursor-pointer relative mr-2 mt-8">
@@ -197,13 +212,15 @@ const ProgressBar = ({ scrollerRef, categoryData }) => {
   );
 };
 
-// --- MAIN APP COMPONENT ---
+
+// --- MAIN APP COMPONENT (REFACTORED) ---
 
 export default function App() {
   const [selectedCategoryIndex, setSelectedCategoryIndex] = useState(0);
-  const [animationKey, setAnimationKey] = useState(0);
+  const [nextCategoryIndex, setNextCategoryIndex] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const componentRef = useRef(null);
+  const scrollerRef = useRef(null);
 
   const allImageUrls = useMemo(() => {
     const backgroundUrls = mockData.map(d => d.backgroundUrl);
@@ -214,21 +231,33 @@ export default function App() {
   useImagePreloader(allImageUrls);
 
   const categories = useMemo(() => mockData.map((d) => d.category), []);
-  const selectedData = mockData[selectedCategoryIndex];
+
+  const displayIndex = nextCategoryIndex ?? selectedCategoryIndex;
+  const selectedData = mockData[displayIndex];
+
+  // Use the smart loader for the upcoming background image
+  const { isLoaded: isBgLoaded } = useSmartImageLoader(selectedData.backgroundUrl);
 
   const handleSelectCategory = (index) => {
     if (index !== selectedCategoryIndex && !isTransitioning) {
       setIsTransitioning(true);
-      setTimeout(() => {
-        setSelectedCategoryIndex(index);
-        setAnimationKey(prevKey => prevKey + 1);
-        setIsTransitioning(false);
-      }, 300); // Corresponds to the fade-out duration
+      setNextCategoryIndex(index);
     }
   };
 
-  const scrollerRef = useRef(null);
+  // This effect now orchestrates the entire transition, driven by image loading
+  useEffect(() => {
+    if (isTransitioning && isBgLoaded && nextCategoryIndex !== null) {
+      setSelectedCategoryIndex(nextCategoryIndex);
+      setNextCategoryIndex(null);
+      // A micro-delay allows React to commit the state change before we fade in
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 50);
+    }
+  }, [isTransitioning, isBgLoaded, nextCategoryIndex]);
 
+  // Scroller drag effect
   useEffect(() => {
     const scroller = scrollerRef.current;
     if (!scroller) return;
@@ -267,8 +296,9 @@ export default function App() {
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', endDrag);
     };
-  }, [selectedData]);
+  }, [selectedData, selectedCategoryIndex]);
 
+  // GSAP Pinning effect
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
@@ -289,49 +319,42 @@ export default function App() {
           from { opacity: 0; transform: translateY(-20px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        
         @keyframes slideInFromRight {
           from { opacity: 0; transform: translateX(50px); }
           to { opacity: 1; transform: translateX(0); }
         }
-
         .animate-fade-in-down { animation: fadeInDown 0.6s ease-out both; }
         .animate-slide-in-from-right { animation: slideInFromRight 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
-        /* --- CHANGE: Made flash duration slightly longer for a smoother feel --- */
-        .animate-flash { animation: flashEffect 0.5s ease-in-out; }
-
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         .dragging { cursor: grabbing; scroll-behavior: auto; user-select: none; }
       `}</style>
       
-      <div ref={componentRef} className="font-satoshi text-white h-screen flex items-center justify-center overflow-hidden  relative">
-        {/* --- CHANGE: Removed flash animation from this container --- */}
-        <div className="w-1/2">
-           {/* --- CHANGE: Pass animationKey to the background component --- */}
-          <AnimatedBackground imageUrl={selectedData.backgroundUrl} animationKey={animationKey} />
+      <div ref={componentRef} className="font-satoshi text-white h-screen flex items-center justify-center overflow-hidden relative">
+        <div className="w-full md:w-1/2">
+          <AnimatedBackground imageUrl={selectedData.backgroundUrl} animationKey={selectedCategoryIndex} />
           <Sidebar categories={categories} selectedIndex={selectedCategoryIndex} onSelect={handleSelectCategory} />
         </div>
 
-        <main className={`flex-1 flex flex-col w-1/3 relative right-40 bottom-3 gap-10 justify-center p-16 overflow-y-visible transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
-          <div key={animationKey} className="animate-fade-in-down flex flex-col items-start gap-5">
-            <h1 className="text-4xl font-extrabold tracking-tight text-white mb-7">{selectedData.category}</h1>
-            <button className="group relative cursor-pointer flex items-center text-left gap-2 backdrop-blur-xl border-2 border-white/50 text-white px-8 py-3 rounded-full text-lg font-semibold overflow-hidden transition-all duration-300 hover:border-white hover:scale-105">
+        <main key={selectedCategoryIndex} className={`flex-1 flex flex-col w-full md:w-1/2 relative md:right-20 lg:right-40 bottom-0 md:bottom-3 gap-5 md:gap-10 justify-center p-4 sm:p-8 md:p-12 lg:p-16 overflow-y-visible transition-opacity duration-500 ease-in-out ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+          <div className="animate-fade-in-down flex flex-col items-start gap-3 md:gap-5">
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white mb-4 md:mb-7">{selectedData.category}</h1>
+                        <button className="group relative cursor-pointer flex items-center text-left gap-2 backdrop-blur-xl border-2 border-white/50 text-white px-6 py-2 md:px-8 md:py-3 rounded-full text-base md:text-lg font-semibold overflow-hidden transition-all duration-300 hover:border-white hover:scale-105">
               <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
               <span className="relative">Learn More</span>
-              <ArrowRight size={22} className="relative transition-transform duration-300 group-hover:translate-x-1" />
+              <ArrowRight className="w-5 h-5 md:w-6 md:h-6 relative transition-transform duration-300 group-hover:translate-x-1" />
             </button>
           </div>
 
-          <div key={animationKey + 0.5} className="mt-5">
-            <div ref={scrollerRef} className="flex overflow-y-auto  pb-8 -mx-4 px-4 cursor-grab scrollbar-hide">
+          <div className="mt-5 w-full">
+            <div ref={scrollerRef} className="flex overflow-x-auto pb-8 -mx-4 px-4 cursor-grab scrollbar-hide">
               {selectedData.projects.map((project, index) => (
                 <ProjectCard key={project.title} project={project} index={index} />
               ))}
               <div className="flex-shrink-0 w-4"></div>                        
             </div>
             
-            {selectedData.projects.length > 1 && <ProgressBar scrollerRef={scrollerRef} categoryData={selectedData} />}
+            {selectedData.projects.length > 1 && <ProgressBar scrollerRef={scrollerRef} categoryData={selectedData} selectedCategoryIndex={selectedCategoryIndex} />}
           </div>
         </main>
       </div>
