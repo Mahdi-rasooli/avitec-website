@@ -229,7 +229,8 @@ const HeroTest = () => {
 
         const navTl = gsap.timeline({ paused: true, defaults: { duration: 0.5, ease: 'power3.out' } })
             .to(navigation, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)' }, 0)
-            .to(skipButton, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)' }, 0.05);
+            .to(skipButton, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)' }, 0.05)
+            .to(textRefs.current[0], { autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out' }, 0.2);
         gsap.set([navigation, skipButton], { y: 16, scale: 0.98, filter: 'blur(6px)' });
         navTl.eventCallback('onStart', () => gsap.set([navigation, skipButton], { visibility: 'visible', pointerEvents: 'auto' }));
         navTl.eventCallback('onComplete', () => gsap.set([navigation, skipButton], { pointerEvents: 'auto' }));
@@ -238,7 +239,7 @@ const HeroTest = () => {
 
         const masterTimeline = gsap.timeline({
             scrollTrigger: {
-              trigger: componentRef.current, pin: true, scrub: 0.9, start: 'top top',
+              trigger: componentRef.current, pin: true, scrub: 0.1, start: 'top top',
               end: `+=${slides.length * 150 + 180}%`, anticipatePin: 1,
               fastScrollEnd: true, invalidateOnRefresh: true,
 
@@ -247,7 +248,7 @@ const HeroTest = () => {
             
                 if (progress <= HERO_END) {
                     const sectionProgress = progress / HERO_END;
-                    const easedSectionProgress = gsap.parseEase('power4.inOut')(sectionProgress);  
+                    const easedSectionProgress = gsap.parseEase('power1.inOut')(sectionProgress);  
 
                     setHeroSectionX(-100 * easedSectionProgress);
                     setImageContainerX(-50 * easedSectionProgress);
@@ -262,10 +263,10 @@ const HeroTest = () => {
               
                     if (scrollIndicatorRef.current) {
                         // Scroll indicator now starts fading earlier
-                        const startFade = 0.87; // Changed from 0.92
+                        const startFade = 0.94; // Changed from 0.92
                         const opacity = easedSectionProgress <= startFade ? 1 : Math.max(0, 1 - ((easedSectionProgress - startFade) / (1 - startFade)));
                         
-                        gsap.set(scrollIndicatorRef.current, { autoAlpha: opacity, x: `${navX}vw` });
+                        gsap.set(scrollIndicatorRef.current, { autoAlpha: opacity, x: `${navX * 1.08}vw` });
             
                         const line = scrollIndicatorRef.current.querySelector('.arrow-line');
                         const icon = scrollIndicatorRef.current.querySelector('svg');
@@ -326,18 +327,29 @@ const HeroTest = () => {
                         });
             
                         textRefs.current.forEach((textRef, index) => {
-                            let opacity = 0, y = 60;
-                            if (index === currentSlide) {
-                                const fadeOutProgress = slideTransitionProgress > 0.5 ? Math.min(1, (slideTransitionProgress - 0.5) / 0.5) : 0;
-                                opacity = 1 - gsap.parseEase("power2.out")(fadeOutProgress);
-                                y = 60 * gsap.parseEase("power2.in")(fadeOutProgress);
+                            if (index === 0) {
+                                if (currentSlide === 0) {
+                                    const fadeOutProgress = slideTransitionProgress > 0.5 ? Math.min(1, (slideTransitionProgress - 0.5) / 0.5) : 0;
+                                    if (fadeOutProgress > 0) {
+                                        const opacity = 1 - gsap.parseEase("power2.out")(fadeOutProgress);
+                                        const y = 60 * gsap.parseEase("power2.in")(fadeOutProgress);
+                                        gsap.set(textRef, { opacity, y });
+                                    }
+                                }
+                            } else {
+                                let opacity = 0, y = 60;
+                                if (index === currentSlide) {
+                                    const fadeOutProgress = slideTransitionProgress > 0.5 ? Math.min(1, (slideTransitionProgress - 0.5) / 0.5) : 0;
+                                    opacity = 1 - gsap.parseEase("power2.out")(fadeOutProgress);
+                                    y = 60 * gsap.parseEase("power2.in")(fadeOutProgress);
+                                }
+                                if (index === currentSlide + 1 && slideTransitionProgress > 0.6) {
+                                    const fadeInProgress = Math.min(1, (slideTransitionProgress - 0.6) / 0.4);
+                                    opacity = gsap.parseEase("power2.out")(fadeInProgress);
+                                    y = 60 * (1 - gsap.parseEase("power2.out")(fadeInProgress));
+                                }
+                                gsap.set(textRef, { opacity, y });
                             }
-                            if (index === currentSlide + 1 && slideTransitionProgress > 0.6) {
-                                const fadeInProgress = Math.min(1, (slideTransitionProgress - 0.6) / 0.4);
-                                opacity = gsap.parseEase("power2.out")(fadeInProgress);
-                                y = 60 * (1 - gsap.parseEase("power2.out")(fadeInProgress));
-                            }
-                            gsap.set(textRef, { opacity, y });
                         });
                         
                         if (progressBarRef.current && spotlightRef.current) {

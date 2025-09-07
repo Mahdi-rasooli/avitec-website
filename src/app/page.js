@@ -10,15 +10,17 @@ import ModernGalleryCarousel from "@/components/gallery";
 import TestVideoMask from "@/components/testMask";
 import TestHero from "@/components/heroTest";
 import Projects from "@/components/Projects";
+import NextSection from "@/components/nextSection";
 
 export default function Home() {
   return (
     <div>
-      {/* <ScrollHeader /> */}
+      <ScrollHeader />
       {/* <Scroll /> */}
       {/* <BeliefSection /> */}
       <TestHero /> 
       <Projects />
+      <NextSection />
       {/* <HomeSections /> */}
       {/* <ModernGalleryCarousel /> */}
       {/* <WorkSection /> */}
