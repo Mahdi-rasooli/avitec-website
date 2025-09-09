@@ -230,7 +230,7 @@ const HeroTest = () => {
         const navTl = gsap.timeline({ paused: true, defaults: { duration: 0.5, ease: 'power3.out' } })
             .to(navigation, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)' }, 0)
             .to(skipButton, { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)' }, 0.05)
-            .to(textRefs.current[0], { autoAlpha: 1, y: 0, duration: 0.4, ease: 'power3.out' }, 0.2);
+            .to(textRefs.current[0], { autoAlpha: 1, y: 0, duration: 0.4, ease: 'power4.out' }, 0.2);
         gsap.set([navigation, skipButton], { y: 16, scale: 0.98, filter: 'blur(6px)' });
         navTl.eventCallback('onStart', () => gsap.set([navigation, skipButton], { visibility: 'visible', pointerEvents: 'auto' }));
         navTl.eventCallback('onComplete', () => gsap.set([navigation, skipButton], { pointerEvents: 'auto' }));
@@ -263,7 +263,7 @@ const HeroTest = () => {
               
                     if (scrollIndicatorRef.current) {
                         // Scroll indicator now starts fading earlier
-                        const startFade = 0.94; // Changed from 0.92
+                        const startFade = 0.96; // Changed from 0.92
                         const opacity = easedSectionProgress <= startFade ? 1 : Math.max(0, 1 - ((easedSectionProgress - startFade) / (1 - startFade)));
                         
                         gsap.set(scrollIndicatorRef.current, { autoAlpha: opacity, x: `${navX * 1.08}vw` });

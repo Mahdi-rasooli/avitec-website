@@ -61,7 +61,7 @@ export default function VideoMaskTransition() {
       opacity: 1,
       scale: 1,
       duration: 1.2,
-      ease: "power4.out"
+      ease: "power1.out"
     }, 0.1)
       .to(maskedVideo, {
         opacity: 1,

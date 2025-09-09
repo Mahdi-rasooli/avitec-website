@@ -3,12 +3,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, useAnimate } from 'framer-motion';
 
-// --- SVG Icons ---
-const CheckIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-);
 
 const ArrowIcon = ({ color = "currentColor" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke={color} strokeWidth={3}>
@@ -72,15 +66,58 @@ const AnimatedLink = () => {
     );
 };
 
+const videoVariants = {
+  hidden: { opacity: 0, x: -100 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      type: "spring",
+      duration: 1.5,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+};
+
+const textContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.3,
+    },
+  },
+};
+
+const textVariants = {
+  hidden: { opacity: 0, y: -50 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      duration: 1,
+      ease: "easeOut",
+    },
+  },
+};
+
 
 // --- Main App Component with Enhanced Layout ---
 const App = () => {
     const videoRef = useRef(null);
 
     return (
-        <div className="bg-white min-h-screen flex flex-col-reverse lg:flex-row font-satoshi overflow-hidden">
+        <div className="bg-white h-[130vh] flex flex-col-reverse lg:flex-row font-satoshi overflow-hidden">
             {/* Left Column: Video Player */}
-            <div className="w-full lg:w-1/2 relative">
+            <motion.div
+              className="w-full lg:w-1/2 relative"
+              variants={videoVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+            >
                 <div
                     className="absolute inset-0 z-0 opacity-10 h-full"
                     style={{
@@ -90,11 +127,11 @@ const App = () => {
                 />
                 <div className="relative z-10 flex items-center justify-center h-full p-16 lg:p-8">
                     <div
-                        className="relative w-full lg:w-[99%] h-[70%] lg:h-[95%] rounded-xl overflow-hidden"
+                        className="relative w-full lg:w-[90%] h-[70%] lg:h-[70%] rounded-xl overflow-hidden"
                     >
                          <video
                             ref={videoRef}
-                            src="/video2.mp4"
+                            src="/video3.mp4"
                             className="absolute rounded-xl top-0 left-0 w-full h-full object-cover"
                             loop
                             autoPlay
@@ -105,33 +142,42 @@ const App = () => {
                         <div className="absolute inset-0 bg-gradient-to-r from-black/25 to-transparent pointer-events-none"></div>
                     </div>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Right Column: Text Content */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-16 lg:p-32 py-24">
-                 <div 
+            <motion.div
+              className="w-full lg:w-1/2 flex items-center justify-center p-16 lg:p-32 py-24"
+              variants={textContainerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+            >
+                 <motion.div 
                     className="max-w-3xl w-full text-left space-y-10"
+                    variants={textContainerVariants}
                 >
-                    <h1
+                    <motion.h1
                         className="text-4xl md:text-6xl font-extrabold text-gray-900 leading-tight tracking-tighter"
+                        variants={textVariants}
                     >
-                        <span className="text-red-600">AVITEC's </span>Extraordinary Teams Building Inspiring Projects
-                    </h1>
-                    <p
+                        <span className="text-red-600">AVITEC's </span>Extraordinary Teams Building <span className='text-red-400'>Inspiring Projects</span>
+                    </motion.h1>
+                    <motion.p
                         className="text-gray-700 text-2xl leading-relaxed"
+                        variants={textVariants}
                     >
-                        We deliver first-of-a-kind projects that improve quality of life, foster economic growth, and promote sustainable development worldwide — from clean and efficient transportation systems and sustainable energy solutions to advanced manufacturing facilities.
-                    </p>
-                    <div
+                        We deliver first-of-a-kind projects <span className='text-red-400'>that improve quality of life</span>, foster economic growth, and promote sustainable development worldwide — from clean and efficient transportation systems and sustainable energy solutions to advanced manufacturing facilities.
+                    </motion.p>
+                    <motion.div
                         className="flex items-center gap-8 pt-6"
+                        variants={textVariants}
                     >
                         <AnimatedLink />
-                    </div>
-                </div>
-            </div>
+                    </motion.div>
+                </motion.div>
+            </motion.div>
         </div>
     );
 };
 
 export default App;
-
