@@ -183,16 +183,6 @@ const sidebarItemVariants = {
   visible: { opacity: 1, x: 0 },
 };
 
-const projectCardsContainerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
 const projectCardVariants = {
   hidden: { opacity: 0, x: 50 },
   visible: (i) => ({
@@ -200,9 +190,9 @@ const projectCardVariants = {
     x: 0,
     transition: {
       type: "spring",
-      damping: 15,
       stiffness: 100,
-      delay: 0.3 + i * 0.1,
+      damping: 15,
+      delay: i * 0.1,
     },
   }),
 };
@@ -561,16 +551,18 @@ export default function App() {
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         .dragging { cursor: grabbing; scroll-behavior: auto; user-select: none; }
       `}</style>
-      <section className="relative z-10">
+      <section ref={componentRef} className="relative z-10 h-screen">
         <div
-          ref={componentRef}
-          className="font-satoshi text-white h-screen flex flex-col md:flex-row items-center justify-center overflow-hidden relative"
+          className="font-satoshi text-white h-full flex flex-col md:flex-row items-center justify-center relative"
         >
+          {/* Background Image */}
           <AnimatedBackground
             imageUrl={selectedData.backgroundUrl}
             animationKey={selectedCategoryIndex}
           />
-          <div className="w-full h-1/3 max-sm:h-1/1800 md:h-full md:w-1/2 relative">
+
+          {/* Sidebar */}
+          <div className="w-full md:w-1/3 lg:w-1/4 h-full relative">
             <Sidebar
               categories={categories}
               selectedIndex={selectedCategoryIndex}
@@ -580,47 +572,54 @@ export default function App() {
             />
           </div>
 
+          {/* Main Content - Full Width Overlay on Mobile, Side Content on Desktop */}
           <main
             key={selectedCategoryIndex}
-            className={`flex-1 flex flex-col w-full h-2/3 md:h-full md:w-1/2 bg-black/30 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none relative md:right-20 lg:right-40 bottom-0 md:bottom-3 gap-5 md:gap-10 justify-center p-4 sm:p-8 md:p-12 lg:p-16 overflow-y-auto transition-opacity duration-500 ease-in-out ${
-              isTransitioning ? "opacity-0" : "opacity-100"
-            }`}
+            className="absolute inset-0 md:relative w-full h-full flex flex-col justify-center"
           >
-            <div className="animate-fade-in-down flex flex-col items-start gap-3 md:gap-5">
-              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white mb-4 md:mb-7">
-                {selectedData.category}
-              </h1>
-              <button className="group relative cursor-pointer flex items-center text-left gap-2 backdrop-blur-xl border-2 border-white/50 text-white px-6 py-2 md:px-8 md:py-3 rounded-full text-base md:text-lg font-semibold overflow-hidden transition-all duration-300 hover:border-white hover:scale-105">
-                <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                <span className="relative">Learn More</span>
-                <ArrowRight className="w-5 h-5 md:w-6 md:h-6 relative transition-transform duration-300 group-hover:translate-x-1" />
-              </button>
-            </div>
+            <div
+              className={`w-full h-full md:w-2/3 lg:w-3/4 md:absolute md:right-0 md:top-0 transition-opacity duration-500 ease-in-out flex flex-col justify-center p-4 sm:p-8 md:p-12 lg:p-16 ${
+                isTransitioning ? "opacity-0" : "opacity-100"
+              } ${isMobile ? "bg-black/30 backdrop-blur-sm" : ""}`}
+            >
+              {/* Title and Button */}
+              <div className="animate-fade-in-down">
+                <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white mb-4 md:mb-7">
+                  {selectedData.category}
+                </h1>
+                <button className="group relative cursor-pointer flex items-center text-left gap-2 backdrop-blur-xl border-2 border-white/50 text-white px-6 py-2 md:px-8 md:py-3 rounded-full text-base md:text-lg font-semibold overflow-hidden transition-all duration-300 hover:border-white hover:scale-105">
+                  <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                  <span className="relative">Learn More</span>
+                  <ArrowRight className="w-5 h-5 md:w-6 md:h-6 relative transition-transform duration-300 group-hover:translate-x-1" />
+                </button>
+              </div>
 
-            <div className="mt-5 w-full">
-              <motion.div
-                ref={scrollerRef}
-                className="flex w-full overflow-x-auto pb-8 -mx-4 px-4 cursor-grab scrollbar-hide"
-                initial="hidden"
-                animate={isInView ? "visible" : "hidden"}
-              >
-                {selectedData.projects.map((project, index) => (
-                  <ProjectCard
-                    key={project.title}
-                    project={project}
-                    index={index}
+              {/* Cards Scroller */}
+              <div className="mt-20 w-full">
+                <motion.div
+                  ref={scrollerRef}
+                  className="flex overflow-x-auto pb-8 cursor-grab scrollbar-hide"
+                  initial="hidden"
+                  animate={isInView ? "visible" : "hidden"}
+                >
+                  {selectedData.projects.map((project, index) => (
+                    <ProjectCard
+                      key={project.title}
+                      project={project}
+                      index={index}
+                    />
+                  ))}
+                  <div className="flex-shrink-0 w-4 md:w-8"></div>
+                </motion.div>
+
+                {selectedData.projects.length > 2 && (
+                  <ProgressBar
+                    scrollerRef={scrollerRef}
+                    categoryData={selectedData}
+                    selectedCategoryIndex={selectedCategoryIndex}
                   />
-                ))}
-                <div className="flex-shrink-0 w-4"></div>
-              </motion.div>
-
-              {selectedData.projects.length > 1 && (
-                <ProgressBar
-                  scrollerRef={scrollerRef}
-                  categoryData={selectedData}
-                  selectedCategoryIndex={selectedCategoryIndex}
-                />
-              )}
+                )}
+              </div>
             </div>
           </main>
         </div>
