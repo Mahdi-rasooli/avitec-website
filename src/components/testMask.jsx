@@ -21,169 +21,132 @@ export default function TestVideoMask() {
     const textMask = textMaskRef.current;
     const maskedVideo = maskedVideoRef.current;
     const overlaySection = overlaySectionRef.current;
-
-    // Initial states
-    gsap.set(maskedVideo, { opacity: 0 });
-    gsap.set(textMask, { scale: 6, opacity: 0, transformOrigin: "center center" });
-    if (overlaySection) {
-      // Ensure overlay sits above the video wrapper when expanded
-      // Position at bottom so height animation expands upward (from bottom to top)
-      gsap.set(overlaySection, {
-        position: 'absolute',
-        backgroundColor: '#000000',
-        bottom: 0,
-        height: '0vh',
-        left: '5vw',
-        right: '5vw',
-        borderRadius: 12,
-        zIndex: 60,
-        transformOrigin: 'bottom center',
-        willChange: 'height,left,right,border-radius'
-      });
-      // Make sure text container is above overlay internals
-      if (greenTextRef.current) gsap.set(greenTextRef.current, { position: 'relative', zIndex: 70 });
-    }
-
-    // prepare green overlay text initial state
     const greenText = greenTextRef.current;
-    if (greenText) {
-      const words = greenText.querySelectorAll('.split-word');
-      gsap.set(words, { autoAlpha: 0, y: 30 });
+    const subsectionVideoWrapper = subsectionVideoWrapperRef.current;
+    const subsection = subsectionRef.current;
+
+    // --- Initial States ---
+    gsap.set(maskedVideo, { clipPath: 'inset(0% 0 0% 0)' }); // Start as a horizontal line in the middle
+    gsap.set(textMask, { fontSize: '150vw' });
+
+    if (overlaySection) {
+        gsap.set(overlaySection, {
+            position: 'absolute',
+            backgroundColor: '#000000',
+            bottom: 0,
+            height: '0vh',
+            left: '5vw',
+            right: '5vw',
+            borderRadius: 12,
+            zIndex: 60,
+            transformOrigin: 'bottom center',
+            willChange: 'height,left,right,border-radius'
+        });
+        if (greenText) gsap.set(greenText, { position: 'relative', zIndex: 70 });
     }
 
-    // Master timeline: first expand subsection video from 50vh to full screen,
-    // then run the existing AVITEC mask/video sequence.
+    if (greenText) {
+        const words = greenText.querySelectorAll('.split-word');
+        gsap.set(words, { autoAlpha: 0, y: 30 });
+    }
+
+    // --- Master Timeline ---
     const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: container,
-        start: "top top",
-        end: "+=350%", // extended further to add an extra scroll step
-        scrub: 1,
-        pin: true,
-        anticipatePin: 1,
-      },
+        scrollTrigger: {
+            trigger: container,
+            start: "top top",
+            end: "+=350%",
+            scrub: 1,
+            pin: true,
+            anticipatePin: 1,
+        },
     });
 
-    // Subsection expand: start with subsection video wrapper at 50vh and ensure
-    // it reaches exactly 100vh (full viewport height) during the scroll.
-    if (subsectionVideoWrapperRef.current) {
-      const wrapper = subsectionVideoWrapperRef.current;
-      // Use vw/vh-aware sizing: set initial height to 50vh so it's half-screen
-      gsap.set(wrapper, { height: '50vh', position: 'relative', zIndex: 40 });
-      // Ensure the title section sits below the video in stacking context
-      if (subsectionRef.current) {
-        gsap.set(subsectionRef.current, { position: 'relative', zIndex: 20 });
-      }
-
-      // Animate to exact 100vh to guarantee full-screen coverage and translate
-      // the wrapper upward so it covers the title above it.
-      const titleHeight = () => (subsectionRef.current ? subsectionRef.current.getBoundingClientRect().height : 0);
-
-      tl.to(wrapper, {
-        height: () => `${window.innerHeight}px`,
-        duration: 1.2,
-        ease: 'power2.inOut'
-      }, 0)
-      .to(wrapper, {
-        y: () => -titleHeight(),
-        duration: 1.2,
-        ease: 'power2.inOut'
-      }, 0)
-      // mark expand completion so the AVITEC mask runs after the video fully fills the screen
-      .add('expanded', 1.25);
+    // --- Subsection Expand Animation ---
+    if (subsectionVideoWrapper) {
+        gsap.set(subsectionVideoWrapper, { height: '50vh', position: 'relative', zIndex: 40 });
+        if (subsection) {
+            gsap.set(subsection, { position: 'relative', zIndex: 20 });
+        }
+        const titleHeight = () => (subsection ? subsection.getBoundingClientRect().height : 0);
+        tl.to(subsectionVideoWrapper, {
+            height: () => `${window.innerHeight}px`,
+            duration: 1.2,
+            ease: 'power2.inOut'
+        }, 0)
+        .to(subsectionVideoWrapper, {
+            y: () => -titleHeight(),
+            duration: 1.2,
+            ease: 'power2.inOut'
+        }, 0)
+        .add('expanded', 1.25);
     }
 
-    // Mask + video transition (starts after expand completes)
-    // Smooth the crossfade and sync masked video playback to the background video
-    // to avoid visible jumps when switching to the full-screen masked video.
-    tl.to(textMask, {
-      opacity: 1,
-      scale: 1,
-      duration: 1.2,
-      ease: "power4.out"
-    }, 'expanded+=0.05')
-      .to(maskedVideo, {
-        opacity: 1,
-        duration: 1.4, // slightly longer crossfade for smoother transition
-        ease: "power2.inOut",
-        onStart: () => {
-          // When masked video becomes visible, attempt to sync its currentTime
-          // to the background video to avoid jumps.
-          try {
-            const bg = backgroundVideo;
-            const fgVideo = maskedVideo.querySelector('video');
-            if (bg && fgVideo && Math.abs((fgVideo.currentTime || 0) - (bg.currentTime || 0)) > 0.1) {
-              // small tolerance before seeking
-              fgVideo.currentTime = Math.min(bg.currentTime || 0, Math.max(0, fgVideo.duration || Infinity));
-            }
-          } catch (e) {
-            // swallow errors to avoid breaking the timeline
-          }
-        }
-      }, 'expanded+=0.15')
-      .to(backgroundVideo, {
+    // --- New Mask + Video Reveal Animation ---
+    tl.to(maskedVideo, {
+        clipPath: 'inset(0% 0 0% 0)', // Animate to be fully visible (expanding from middle)
+        duration: 2,
+        ease: 'power2.inOut'
+    }, 'expanded')
+    .to(textMask, {
+        fontSize: '22vw',
+        duration: 2,
+        ease: 'power2.inOut'
+    }, 'expanded')
+    .to(backgroundVideo, {
         opacity: 0,
-        duration: 1.2, // lengthen fade out to match masked video and remove abruptness
-        ease: "power2.inOut"
-      }, 'expanded+=0.15')
-      .add('brandShown', 'expanded+=1.6')
-      // Hold the brand visible a bit longer before starting the exit/overlay
-      .add('brandHold', 'brandShown+=0.8')
-      .to(maskedVideo, {
+        duration: 0.1
+    }, 'expanded')
+    .add('brandShown', 'expanded+=1.8');
+
+    // --- Overlay and Text Animation ---
+    tl.to(maskedVideo, {
         opacity: 0,
         duration: 1,
         ease: 'none'
-      }, 'brandHold')
-      .to(overlaySection, {
+    }, 'brandShown+=0.8')
+    .to(overlaySection, {
         height: '100vh',
         left: '0vw',
         right: '0vw',
         borderRadius: 0,
         duration: 1,
         ease: 'none'
-      }, 'brandHold');
+    }, 'brandShown+=0.8');
 
-    // Animate overlay text
     if (greenText) {
-      const headlineWords = greenText.querySelectorAll('h2 .split-word');
-      const paragraphWords = greenText.querySelectorAll('p .split-word');
-
-      gsap.set([...headlineWords, ...paragraphWords], {
-        autoAlpha: 0,
-        y: 40,
-        rotationX: -12,
-        transformOrigin: '50% 50% -50px'
-      });
-
-      // Headline reveal
-      tl.to(headlineWords, {
-        autoAlpha: 1,
-        y: 0,
-        rotationX: 0,
-        duration: 0.9,
-        ease: 'power3.out',
-        stagger: 0.06,
-      }, 'brandHold+=0.15')
-
-        // Paragraph reveal (headline stays visible)
+        const headlineWords = greenText.querySelectorAll('h2 .split-word');
+        const paragraphWords = greenText.querySelectorAll('p .split-word');
+        gsap.set([...headlineWords, ...paragraphWords], {
+            autoAlpha: 0,
+            y: 40,
+            rotationX: -12,
+            transformOrigin: '50% 50% -50px'
+        });
+        tl.to(headlineWords, {
+            autoAlpha: 1,
+            y: 0,
+            rotationX: 0,
+            duration: 0.9,
+            ease: 'power3.out',
+            stagger: 0.06,
+        }, 'brandShown+=0.95')
         .to(paragraphWords, {
-          autoAlpha: 1,
-          y: 0,
-          rotationX: 0,
-          duration: 0.9,
-          ease: 'power3.out',
-          stagger: 0.04,
-        }, 'brandHold+=0.75')
-
-        //  Exit words one by one
+            autoAlpha: 1,
+            y: 0,
+            rotationX: 0,
+            duration: 0.9,
+            ease: 'power3.out',
+            stagger: 0.04,
+        }, 'brandShown+=1.55')
         .to([...headlineWords, ...paragraphWords], {
-          autoAlpha: 0,
-          y: -30,
-          rotationX: 12,
-          duration: 0.8,
-          ease: 'power2.in',
-          stagger: 0.05, // makes them disappear one by one
-        }, 'brandHold+=2.2'); // exit starts later so both are visible first
+            autoAlpha: 0,
+            y: -30,
+            rotationX: 12,
+            duration: 0.8,
+            ease: 'power2.in',
+            stagger: 0.05,
+        }, 'brandShown+=3');
     }
 
     return () => ScrollTrigger.getAll().forEach(trigger => trigger.kill());
@@ -228,7 +191,6 @@ export default function TestVideoMask() {
                     textAnchor="middle"
                     dominantBaseline="central"
                     fill="white"
-                    fontSize="22vw"
                     fontWeight="900"
                     fontFamily="Arial Black, sans-serif"
                     style={{ transformOrigin: 'center center', transformBox: 'fill-box' }}

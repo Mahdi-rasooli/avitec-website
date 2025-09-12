@@ -11,6 +11,8 @@ import TestVideoMask from "@/components/testMask";
 import TestHero from "@/components/heroTest";
 import Projects from "@/components/Projects";
 import NextSection from "@/components/nextSection";
+import ESG from "@/components/ESGsection";
+import ESGsection from "@/components/test/ESGtest";
 
 export default function Home() {
   return (
@@ -18,17 +20,19 @@ export default function Home() {
       <ScrollHeader />
       {/* <Scroll /> */}
       {/* <BeliefSection /> */}
-      <TestHero /> 
+      {/* <TestHero /> 
       <Projects />
-      <NextSection />
+      <NextSection /> */}
       {/* <HomeSections /> */}
       {/* <ModernGalleryCarousel /> */}
       {/* <WorkSection /> */}
-      <SecondCompo />
+      <ESG />
+      {/* <ESGsection /> */}
+      {/* <SecondCompo /> */}
       {/* <VideoMaskTransition /> */}
       <TestVideoMask />
       {/* <MaskVideo /> */}
-      <ContactSection />
+      {/* <ContactSection /> */}
     </div>
   );
 }

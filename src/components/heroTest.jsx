@@ -505,7 +505,7 @@ const HeroTest = () => {
         <div ref={navigationRef} className="fixed bottom-8 md:bottom-12 left-4 md:left-12 z-50 opacity-0 px-4 md:px-0">
           <div className="relative mb-4 md:mb-6">
             <div className="w-full h-0.5 bg-gray-200 shadow-2xl rounded-lg"></div>
-            <div ref={progressBarRef} className="absolute rounded-lg top-0 left-0 h-0.5 bg-red-500 shadow-lg shadow-blue-500/50"></div>
+            <div ref={progressBarRef} className="absolute rounded-lg top-0 left-0 h-0.5 bg-red-500 shadow-2xl shadow-blue-500/50"></div>
           </div>
           <div className="flex gap-4 md:gap-6 relative overflow-hidden">
             {slides.map((slide, i) => (
