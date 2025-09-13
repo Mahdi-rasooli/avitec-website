@@ -26,8 +26,8 @@ export default function Home() {
       {/* <HomeSections /> */}
       {/* <ModernGalleryCarousel /> */}
       {/* <WorkSection /> */}
-      <ESG />
-      {/* <ESGsection /> */}
+      {/* <ESG /> */}
+      <ESGsection />
       {/* <SecondCompo /> */}
       {/* <VideoMaskTransition /> */}
       <TestVideoMask />
