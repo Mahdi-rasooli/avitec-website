@@ -5,14 +5,16 @@ import NextSection from "@/components/nextSection";
 import PinnedESG from "@/components/PinnedESG";
 import TestVideoMask from "@/components/testMask";
 import ESGsection from "@/components/test/ESGtest";
+import WorkSection from "@/components/ScrollPinnedCards";
 
 export default function Home() {
   return (
     <div>
       <ScrollHeader />
-      {/* <TestHero /> 
+      <TestHero /> 
       <Projects />
-      <NextSection /> */}
+      <NextSection />
+      <WorkSection />
       {/* <ESGsection /> */}
       <PinnedESG />
       <TestVideoMask />

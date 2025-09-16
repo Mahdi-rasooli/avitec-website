@@ -16,9 +16,9 @@ const PinnedESG = () => {
       ScrollTrigger.create({
         trigger: componentRef.current,
         start: 'top top',
-        end: '+=200%', // Pin for a duration of 2x the viewport height
+        end: '+=10%', // Pin for a duration of 60% the viewport height
         pin: targetRef.current,
-        scrub: 1,
+        scrub: 0.5,
         anticipatePin: 1,
       });
     }, componentRef);
@@ -27,7 +27,7 @@ const PinnedESG = () => {
   }, []);
 
   return (
-    <div ref={componentRef} className="h-[300vh] relative">
+    <div ref={componentRef} className="h-[110vh] relative">
       <div ref={targetRef} className="h-screen w-full">
         <ESGsection />
       </div>

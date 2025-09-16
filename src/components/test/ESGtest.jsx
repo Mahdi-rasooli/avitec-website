@@ -8,9 +8,9 @@ import { ArrowRight } from "lucide-react";
 gsap.registerPlugin(ScrollTrigger);
 
 const esgData = [
-  { key: "e", letter: "E", title: "Environmental", bgImage: "/img29.jpg" },
-  { key: "s", letter: "S", title: "Social", bgImage: "/img28.jpg" },
-  { key: "g", letter: "G", title: "Governance", bgImage: "/img27.jpg" },
+  { key: "e", letter: "E", title: "Environmental", bgImage: "/img29.jpg", description: "Pioneering sustainable solutions to protect our planet for future generations. We are committed to minimizing our footprint and maximizing our positive impact." },
+  { key: "s", letter: "S", title: "Social", bgImage: "/img28.jpg", description: "Building a better world through ethical practices, community engagement, and empowering our people. Our success is measured by the well-being of those we serve." },
+  { key: "g", letter: "G", title: "Governance", bgImage: "/img27.jpg", description: "Upholding the highest standards of integrity and transparency. Our robust governance framework ensures accountability and builds lasting trust with all stakeholders." },
 ];
 
 const ANIMATION_CONFIG = {
@@ -44,15 +44,6 @@ function ESGsection() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        trigger: pinContainerRef.current,
-        start: "top top",
-        end: "+=200%",
-        pin: mainRef.current,
-        scrub: 1,
-        anticipatePin: 1,
-      });
-
       gsap.set(".background-image-container", { clipPath: "polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)" });
       gsap.set(".letter", { opacity: 0, xPercent: -50, yPercent: -10 });
 
@@ -65,7 +56,6 @@ function ESGsection() {
         onComplete: () => {
           gsap.to(".letter", { y: -15, repeat: -1, yoyo: true, ease: "sine.inOut", duration: 2.5, stagger: { each: 0.2, from: "start" } });
           setActiveSection("e");
-          gsap.set('[data-section="e"] .background-wrapper', { zIndex: 2 });
           setIsEntryAnimationComplete(true);
         },
       });
@@ -80,10 +70,19 @@ function ESGsection() {
         );
       });
 
-      entryTl.to(".background-image-container", 
-        { clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)", duration: 1.5, ease: "power3.out", stagger: { each: 0.4, from: "start" } }, 
-        "+=0.4"
-      );
+      // 1. Animate all backgrounds into view with a left-to-right stagger
+      entryTl.to(".background-image-container", {
+        clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+        duration: 1.5,
+        ease: "power3.out",
+        stagger: { each: 0.3, from: "start" }
+      }, "+=0.4");
+
+      // 2. After the stagger, instantly hide the 'S' and 'G' backgrounds, leaving 'E' perfectly in place.
+      const collapsedClipPath = "polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)";
+      entryTl.set(['[data-section="s"] .background-image-container', '[data-section="g"] .background-image-container'], { 
+        clipPath: collapsedClipPath 
+      });
 
     }, pinContainerRef);
 
@@ -105,15 +104,22 @@ function ESGsection() {
     isAnimating.current = true;
     const layoutTl = gsap.timeline({ defaults: { duration, ease }, onComplete: () => { isAnimating.current = false; } });
 
+    // Animate layout and letters
     layoutTl
       .to(activeSelector, { flexGrow: activeFlex }, 0)
       .to(`.esg-section:not(${activeSelector})`, { flexGrow: inactiveFlex }, 0)
       .to(`${activeSelector} .background-overlay`, { opacity: 0 }, 0)
-      .to(`.esg-section:not(${activeSelector}) .background-overlay`, { opacity: 0.5 }, 0)
+      .to(`.esg-section:not(${activeSelector}) .background-overlay`, { opacity: 0 }, 0)
       .to(`${activeSelector} .letter`, { scale: activeLetterScale, opacity: 1, left: activeLetterLeft, xPercent: -50 }, 0)
       .to(`.esg-section:not(${activeSelector}) .letter`, { scale: inactiveLetterScale, opacity: 0.5, left: inactiveLetterLeft, xPercent: -50 }, 0)
       .to(`${activeSelector} .content`, { opacity: 1, y: 0, left: activeContentLeft, xPercent: -50 }, 0)
       .to(`.esg-section:not(${activeSelector}) .content`, { opacity: 0, y: 20, left: inactiveContentLeft, xPercent: -50 }, 0);
+
+    // Animate descriptions separately for better control
+    if (prevSelector) {
+      layoutTl.to(`${prevSelector} .description`, { opacity: 0, y: 20, duration: duration * 0.5 }, 0);
+    }
+    layoutTl.fromTo(`${activeSelector} .description`, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: duration * 0.75 }, duration * 0.75);
 
     if (previousSection) {
       const revealClipPath = "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)";
@@ -138,19 +144,19 @@ function ESGsection() {
 
   const handleMouseEnter = (key) => {
     if (key === activeSection) return;
-    gsap.to(`[data-section="${key}"] .letter`, { scale: ANIMATION_CONFIG.activeLetterScale, duration: 0.3, ease: "power2.out" });
-    gsap.to(`[data-section="${key}"] .background-overlay`, { opacity: 0.3, duration: 0.3, ease: "power2.out" });
+    gsap.to(`[data-section="${key}"] .letter`, { scale: ANIMATION_CONFIG.activeLetterScale, duration: 0.5, ease: "power3.out" });
+    gsap.to(`[data-section="${key}"] .background-overlay`, { opacity: 0.4, duration: 0.01, ease: "power3.out" });
   };
 
   const handleMouseLeave = (key) => {
     if (key === activeSection) return;
-    gsap.to(`[data-section="${key}"] .letter`, { scale: ANIMATION_CONFIG.inactiveLetterScale, duration: 0.3, ease: "power2.out" });
-    gsap.to(`[data-section="${key}"] .background-overlay`, { opacity: 0, duration: 0.3, ease: "power2.out" });
+    gsap.to(`[data-section="${key}"] .letter`, { scale: ANIMATION_CONFIG.inactiveLetterScale, duration: 0.5, ease: "power3.out" });
+    gsap.to(`[data-section="${key}"] .background-overlay`, { opacity: 0, duration: 0.01, ease: "power3.out" });
   };
 
   return (
-    <div ref={pinContainerRef} className="h-[300vh] relative">
-      <main ref={mainRef} className="h-screen w-screen overflow-hidden font-satoshi bg-black text-white">
+    <div ref={pinContainerRef} className="h-screen relative">
+      <main ref={mainRef} className="h-screen w-screen overflow-hidden font-satoshi bg-black text-black">
         <div className="absolute inset-0 z-0">
           {esgData.map((item) => (
             <div key={item.key} data-section={item.key} className="background-wrapper absolute inset-0">
@@ -177,6 +183,9 @@ function ESGsection() {
                   <span className="btn-bg absolute inset-0 bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-in-out" style={{ transformOrigin: 'left' }}></span>
                   <span className="btn-text relative z-10 flex items-center gap-2 text-white group-hover:text-red-500 transition-colors duration-300">Learn More <ArrowRight /></span>
                 </div>
+              </div>
+              <div data-section={item.key} className="description absolute bottom-[15%] left-1/2 -translate-x-1/2 w-[90%] mx-auto text-left opacity-0">
+                <p className="text-white text-2xl font-light">{item.description}</p>
               </div>
             </button>
           ))}

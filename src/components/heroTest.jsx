@@ -310,7 +310,7 @@ const HeroTest = () => {
 
                                 
                                 //Added scale animation alongside blur
-                                const blur = isNext ? 16 * (1 - easedSlide) : 16;
+                                const blur = isNext ? 8 * (1 - easedSlide) : 8;
                                 const scale = isNext ? 1 + 0.15 * (1 - easedSlide) : 1.15; // Zoom from 1.15 to 1
                                 gsap.set(imgRef.querySelector('.slide-image'), { filter: `blur(${blur}px)`, scale: scale });
                                 gsap.set(imgRef, { clipPath: `polygon(${reveal}% 0%, 100% 0%, 100% 100%, ${reveal}% 100%)` });
@@ -437,7 +437,7 @@ const HeroTest = () => {
   };
 
   return (
-    <div ref={componentRef} className={`relative bg-[#262836]`}>
+    <div ref={componentRef} className={`relative bg-[#262836] hero-test-container`}>
       <div className="h-screen w-screen relative">
         <section ref={heroSectionRef} className="flex text-white">
           <div ref={heroBackgroundRef} className="absolute inset-0 bg-[#262836]"></div>

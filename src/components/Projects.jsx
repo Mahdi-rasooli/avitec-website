@@ -6,7 +6,7 @@ import React, {
   useRef,
   useLayoutEffect,
 } from "react";
-import { ArrowRight, Menu, X } from "lucide-react";
+import { ArrowRight, ArrowLeft, Menu, X } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { motion, useInView } from "framer-motion";
@@ -267,7 +267,7 @@ const Sidebar = ({
             <motion.li key={category} variants={sidebarItemVariants}>
               <button
                 onClick={() => onSelect(index)}
-                className={`w-full text-left cursor-pointer border backdrop-blur-md border-white/40 px-4 py-3 rounded-full text-white text-lg font-semibold relative overflow-hidden group transition-colors duration-300 hover:border-red-500 hover:text-red-400 ${
+                className={`w-full text-left cursor-pointer border backdrop-blur-xs border-white/40 px-4 py-3 rounded-full text-white text-lg font-semibold relative overflow-hidden group transition-colors duration-300 hover:border-red-500 hover:text-red-400 ${
                   selectedIndex === index ? "border-red-500 text-red-500" : ""
                 }`}
               >
@@ -296,7 +296,7 @@ const Sidebar = ({
 
 const ProjectCard = ({ project, index }) => (
   <motion.div
-    className="group relative flex-shrink-0 w-[80vw] sm:w-[380px] max-sm:w-[300px] max-sm:h-[300px] h-auto aspect-[4/3] sm:aspect-auto md:h-[490px] md:w-[480px] mr-8 backdrop-blur-md cursor-pointer bg-white/10 rounded-2xl shadow-lg border border-white/10 p-4 md:p-6 flex flex-col transition-all duration-300 ease-in-out hover:bg-white hover:border-white/30"
+    className="group relative flex-shrink-0 w-[80vw] sm:w-[380px] max-sm:w-[300px] max-sm:h-[300px] h-auto aspect-[4/3] sm:aspect-auto md:h-[490px] md:w-[480px] mr-8 backdrop-blur-xs cursor-pointer bg-white/10 rounded-2xl shadow-lg border border-white/10 p-4 md:p-6 flex flex-col transition-all duration-300 ease-in-out hover:bg-white hover:border-white/30"
     variants={projectCardVariants}
     custom={index}
   >
@@ -409,7 +409,7 @@ const ProgressBar = ({ scrollerRef, categoryData, selectedCategoryIndex }) => {
   return (
     <div
       ref={trackRef}
-      className="w-full h-1 bg-white/20 rounded-full cursor-pointer relative mr-2 mt-8"
+      className="w-full h-1 bg-white/20 rounded-full cursor-pointer relative"
     >
       <div
         ref={thumbRef}
@@ -428,6 +428,8 @@ export default function App() {
   const [isMobile, setIsMobile] = useState(false);
   const componentRef = useRef(null);
   const scrollerRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -477,7 +479,31 @@ export default function App() {
     }
   }, [isTransitioning, isBgLoaded, nextCategoryIndex]);
 
-  // Scroller drag effect
+  const updateScrollability = () => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;
+    setCanScrollLeft(scroller.scrollLeft > 5); // 5px buffer for precision
+    setCanScrollRight(scroller.scrollLeft < maxScrollLeft - 5); // 5px buffer
+  };
+
+  const handleArrowScroll = (direction) => {
+    const scroller = scrollerRef.current;
+    if (!scroller || !scroller.children.length) return;
+
+    // Find the first card element to measure for an accurate scroll
+    const cardElement = scroller.children[0];
+    const cardStyle = window.getComputedStyle(cardElement);
+    const cardMarginRight = parseFloat(cardStyle.marginRight);
+    const scrollAmount = cardElement.offsetWidth + cardMarginRight;
+
+    scroller.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  };
+
+  // Scroller drag effect & scrollability updates
   useEffect(() => {
     const scroller = scrollerRef.current;
     if (!scroller) return;
@@ -486,6 +512,8 @@ export default function App() {
       scrollStart = 0;
 
     const handlePointerDown = (e) => {
+      // Don't drag if the target is a button inside the scroller
+      if (e.target.closest("button")) return;
       isDragging = true;
       scroller.setPointerCapture?.(e.pointerId);
       startX = e.clientX;
@@ -512,26 +540,55 @@ export default function App() {
     scroller.addEventListener("pointerdown", handlePointerDown);
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", endDrag);
+    scroller.addEventListener("scroll", updateScrollability);
+    const resizeObserver = new ResizeObserver(updateScrollability);
+    resizeObserver.observe(scroller);
+
+    // Initial check after a short delay to allow rendering
+    const checkTimeout = setTimeout(updateScrollability, 100);
 
     return () => {
+      clearTimeout(checkTimeout);
       scroller.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", endDrag);
+      scroller.removeEventListener("scroll", updateScrollability);
+      resizeObserver.disconnect();
     };
   }, [selectedData, selectedCategoryIndex]);
 
   // GSAP Pinning effect
   useLayoutEffect(() => {
     if (isMobile) return;
+
     const ctx = gsap.context(() => {
+      // Transition effect
+      ScrollTrigger.create({
+        trigger: componentRef.current,
+        start: "top bottom",
+        end: "top top",
+        scrub: 2,
+        onUpdate: (self) => {
+          gsap.to(".hero-test-container", {
+            filter: `blur(${self.progress * 7}px)`,
+            scale: 1 - self.progress * 0.05,
+            autoAlpha: 1 - self.progress * 0.25,
+            ease: "power1.out",
+          });
+        },
+      });
+
+      // Original pinning for the Projects section
       ScrollTrigger.create({
         trigger: componentRef.current,
         start: "top top",
-        end: "+=80%",
+        end: "+=10%",
         pin: true,
+        scrub: 1,
         anticipatePin: 1,
       });
     }, componentRef);
+
     return () => ctx.revert();
   }, [isMobile]);
 
@@ -587,10 +644,10 @@ export default function App() {
                 <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white mb-4 md:mb-7">
                   {selectedData.category}
                 </h1>
-                <button className="group relative cursor-pointer flex items-center text-left gap-2 backdrop-blur-xl border-2 border-white/50 text-white px-6 py-2 md:px-8 md:py-3 rounded-full text-base md:text-lg font-semibold overflow-hidden transition-all duration-300 hover:border-white hover:scale-105">
-                  <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                  <span className="relative">Learn More</span>
-                  <ArrowRight className="w-5 h-5 md:w-6 md:h-6 relative transition-transform duration-300 group-hover:translate-x-1" />
+                <button className="group relative cursor-pointer flex items-center text-left gap-2 backdrop-blur-xl border-2 border-white/50 text-white px-6 py-2 md:px-8 md:py-3 rounded-full text-base md:text-lg font-semibold overflow-hidden transition-colors duration-500 hover:border-red-500">
+                  <span className="absolute inset-0 bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-in-out" style={{ transformOrigin: 'left' }}></span>
+                  <span className="relative z-10 group-hover:text-red-500 transition-colors duration-500">Learn More</span>
+                  <ArrowRight className="w-5 h-5 md:w-6 md:h-6 relative z-10 group-hover:text-red-500  transition-colors duration-500 group-hover:translate-x-1" />
                 </button>
               </div>
 
@@ -613,11 +670,29 @@ export default function App() {
                 </motion.div>
 
                 {selectedData.projects.length > 2 && (
-                  <ProgressBar
-                    scrollerRef={scrollerRef}
-                    categoryData={selectedData}
-                    selectedCategoryIndex={selectedCategoryIndex}
-                  />
+                  <div className="w-full mt-4">
+                    <div className="flex justify-start items-center gap-2 mb-6">
+                      <button
+                        onClick={() => handleArrowScroll("left")}
+                        disabled={!canScrollLeft}
+                        className="p-4 cursor-pointer rounded-full bg-white border border-red-500 backdrop-blur-xs transition-all duration-200 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <ArrowLeft className="w-5 h-5 text-red-500" />
+                      </button>
+                      <button
+                        onClick={() => handleArrowScroll("right")}
+                        disabled={!canScrollRight}
+                        className="p-4 cursor-pointer rounded-full bg-white border border-red-500 backdrop-blur-xs transition-all duration-200 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <ArrowRight className="w-5 h-5 text-red-500" />
+                      </button>
+                    </div>
+                    <ProgressBar
+                      scrollerRef={scrollerRef}
+                      categoryData={selectedData}
+                      selectedCategoryIndex={selectedCategoryIndex}
+                    />
+                  </div>
                 )}
               </div>
             </div>

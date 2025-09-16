@@ -109,7 +109,7 @@ const App = () => {
     const videoRef = useRef(null);
 
     return (
-        <div className="bg-white h-[130vh] flex flex-col-reverse lg:flex-row font-satoshi overflow-hidden">
+        <div className="bg-white h-[100vh] flex flex-col-reverse lg:flex-row font-satoshi overflow-hidden">
             {/* Left Column: Video Player */}
             <motion.div
               className="w-full lg:w-1/2 relative"
@@ -127,7 +127,7 @@ const App = () => {
                 />
                 <div className="relative z-10 flex items-center justify-center h-full p-16 lg:p-8">
                     <div
-                        className="relative w-full lg:w-[90%] h-[70%] lg:h-[70%] rounded-xl overflow-hidden"
+                        className="relative w-full lg:w-[90%] h-[70%] lg:h-[90%] rounded-xl overflow-hidden"
                     >
                          <video
                             ref={videoRef}

@@ -10,6 +10,7 @@ import Image from 'next/image'
 
 gsap.registerPlugin(ScrollTrigger);
 
+// STEP 1: Removed `bgGradient` from the data. This is no longer needed.
 const sectionsData = [
   {
     id: 1,
@@ -20,18 +21,16 @@ const sectionsData = [
     img: image12,
     stats: { value: "500+", label: "Projects" },
     accentColor: "#3B82F6", // Blue
-    bgGradient: "from-blue-50 to-indigo-50"
   },
   {
     id: 2,
     title: "Strategic Procurement",
     subtitle: "Efficiency • Quality • Cost Optimization",
-    content: "We streamline the procurement process, ensuring timely delivery of high-quality materials and services. Our strategic sourcing minimizes costs and risks.",
+    content: "We streamline the procurement process, ensuring timely delivery of high-quality materials and services. Our strategic sourcing minimizes costs and risks. ",
     features: ["Global Supplier Network", "Cost Optimization", "Risk Management", "Quality Assurance"],
     img: image14,
     stats: { value: "98%", label: "On Time" },
     accentColor: "#10B981", // Green
-    bgGradient: "from-emerald-50 to-teal-50"
   },
   {
     id: 3,
@@ -42,7 +41,6 @@ const sectionsData = [
     img: image15,
     stats: { value: "100%", label: "Safety Record" },
     accentColor: "#F59E0B", // Amber
-    bgGradient: "from-amber-50 to-orange-50"
   },
 ];
 
@@ -57,16 +55,8 @@ export default function WorkSection() {
   
       if (!titles.length || !cards.length || !wrapperEl) return;
   
-      // Set initial states - explicitly reveal the FIRST title and FIRST card
-      // (overriding their Tailwind classes) and hide all subsequent items.
       const nonFirstTitles = titles.slice(1);
       const nonFirstCards = cards.slice(1);
-  
-      // Ensure the wrapper starts with the first section's gradient so the
-      // background doesn't jump when the timeline runs.
-      if (sectionsData[0] && sectionsData[0].bgGradient) {
-        wrapperEl.className = `wrapper w-full flex overflow-hidden bg-gradient-to-br ${sectionsData[0].bgGradient}`;
-      }
   
       // Show first title and its text-elements
       if (titles.length) {
@@ -80,7 +70,7 @@ export default function WorkSection() {
         nonFirstTitles.forEach(t => gsap.set(t.querySelectorAll('.text-element'), { autoAlpha: 0, y: 30 }));
       }
   
-      // Reveal first card (override the Tailwind clip-path that hides cards)
+      // Reveal first card
       if (cards.length) {
         gsap.set(cards[0], { clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)" });
       }
@@ -90,9 +80,6 @@ export default function WorkSection() {
         gsap.set(nonFirstCards, { clipPath: "polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)" });
       }
   
-      // We skip animating the first card because it's already revealed on load,
-      // so reduce the overall scroll length by one card to avoid extra scroll
-      // before the second image appears.
       const steps = Math.max(0, cards.length - 1);
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -106,27 +93,21 @@ export default function WorkSection() {
         },
       });
   
-      // Animate through each section. Skip the first card reveal because it
-      // is already visible; start transitions from the second card (i=1).
+      // STEP 2: The animation logic no longer changes the background color.
       cards.forEach((card, i) => {
         const title = titles[i];
         const prevTitle = titles[i - 1];
-        const section = sectionsData[i];
   
-        // Skip animating the first card (it's visible by default). For i=0
-        // still ensure any background or title is already present.
         if (i === 0) {
           return;
         }
   
-        // 1. Reveal the current card
         tl.to(card, {
           clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
           duration: 1,
           ease: "power2.inOut",
         });
   
-        // 2. Fade out the PREVIOUS section's text (if it exists)
         if (prevTitle) {
           tl.to(prevTitle.querySelectorAll('.text-element'), {
             autoAlpha: 0,
@@ -136,12 +117,11 @@ export default function WorkSection() {
           }, "<");
         }
         
-        // 3. Fade in the CURRENT section's text immediately after prev fade-out completes
         tl.to(title, { 
           autoAlpha: 1,
           duration: 0.3,
           ease: "power2.out"
-        }, ">"); // ">" places it right after the prev text fade-out ends
+        }, ">");
         
         tl.to(title.querySelectorAll('.text-element'), {
           autoAlpha: 1,
@@ -149,19 +129,9 @@ export default function WorkSection() {
           duration: 0.3,
           stagger: 0.05,
           ease: "power2.out"
-        }, "<"); // Start at the same time as the title fade-in (no extra delay)
-  
-        // 4. Change background color to match current section
-        if (section.bgGradient) {
-          // Set the wrapper gradient after the card reveal starts but aligned with text changes
-          tl.set(wrapperEl, {
-            className: `wrapper w-full flex overflow-hidden bg-gradient-to-br ${section.bgGradient}`,
-          }, "<");
-        }
-  
+        }, "<");
       });
   
-      // Add a final exit animation for the last piece of text
       const lastTitle = titles[titles.length - 1];
       tl.to(lastTitle.querySelectorAll('.text-element'), {
         autoAlpha: 0,
@@ -177,8 +147,12 @@ export default function WorkSection() {
 
   return (
     <div ref={main} className="w-full">
-      <div className="wrapper w-full flex overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50">
-        <div className="column left relative flex-1 flex justify-center items-center h-screen px-12 lg:px-20">
+      {/* STEP 3: Changed this wrapper's background to plain 'bg-white'.
+          This makes the background of the entire component, including the left side, white. */}
+      <div className="wrapper w-full flex flex-col lg:flex-row overflow-hidden bg-white">
+        
+        {/* This left column is transparent, so it will now correctly show the white background from its parent. */}
+        <div className="column left relative flex-1 hidden lg:flex justify-start items-center h-screen px-12 lg:px-20">
           {sectionsData.map((section, i) => (
             <div key={section.id} className="left-content absolute opacity-0 invisible w-full max-w-xl">
               <div className="space-y-8">
@@ -187,10 +161,10 @@ export default function WorkSection() {
                   <span className="text-sm font-medium tracking-widest text-gray-500 uppercase">0{i + 1}</span>
                 </div>
                 <div className="text-element space-y-4">
-                  <h1 className="text-5xl lg:text-6xl font-light text-gray-900 leading-tight tracking-tight">{section.title}</h1>
-                  <p className="text-lg font-medium tracking-wide" style={{ color: section.accentColor }}>{section.subtitle}</p>
+                  <h1 className="text-5xl max-sm:text-3xl lg:text-7xl font-extrabold text-gray-800 leading-tight tracking-tight">{section.title}</h1>
+                  <p className="text-lg max-sm:hidden font-medium tracking-wide" style={{ color: section.accentColor }}>{section.subtitle}</p>
                 </div>
-                <p className="text-element text-xl text-gray-600 leading-relaxed font-light max-w-lg">{section.content}</p>
+                <p className="text-element text-2xl max-sm:hidden text-gray-600 leading-relaxed font-medium max-w-lg">{section.content}</p>
                 <div className="text-element space-y-3 pt-4">
                   {section.features.slice(0, 3).map((feature, idx) => (
                     <div key={idx} className="flex items-center gap-4 text-gray-700">
@@ -209,11 +183,13 @@ export default function WorkSection() {
             </div>
           ))}
         </div>
-        <div className="column right relative flex-1 flex justify-center items-center h-screen p-12">
+
+        {/* STEP 4: Added the white background with the dotty pattern ONLY to the right column. */}
+        <div className="column right relative flex-1 flex justify-center items-center h-screen p-12 bg-white bg-[radial-gradient(#e0e0e0_0.25px,transparent_2px)] [background-size:16px_16px]">
           {sectionsData.map((section) => (
             <div
               key={section.id}
-              className="card absolute w-[500px] h-[600px] rounded-3xl overflow-hidden shadow-2xl group [clip-path:polygon(0%_100%,100%_100%,100%_100%,0_100%)]"
+              className="card absolute w-full h-full lg:w-[700px] lg:h-[800px] rounded-3xl overflow-hidden shadow-2xl group [clip-path:polygon(0%_100%,100%_100%,100%_100%,0_100%)]"
             >
               <div className="relative w-full h-full"> 
                 <Image src={section.img} alt={section.title} fill className="object-cover" />
@@ -225,10 +201,23 @@ export default function WorkSection() {
                   <div className="text-white/80 text-sm">{section.stats.label}</div>
                 </div>
               </div>
-              <div className="absolute bottom-8 left-8 right-8">
-                <div className="space-y-3">
-                  <div className="w-12 h-1 rounded-full" style={{ backgroundColor: section.accentColor }}/>
+              <div className="absolute lg:hidden bottom-8 left-8 right-8">
+                <div className="space-y-3 text-center">
                   <h3 className="text-white text-2xl font-light">{section.title}</h3>
+                  <div className="text-element space-y-3 pt-4">
+                    {section.features.slice(0, 3).map((feature, idx) => (
+                      <div key={idx} className="flex items-center justify-center gap-4 text-white">
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: section.accentColor }}/>
+                        <span className="font-medium">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-element pt-8">
+                    <button className="group inline-flex items-center gap-3 px-8 py-4 rounded-full font-medium text-white transition-all duration-300 hover:scale-105 hover:shadow-lg" style={{ backgroundColor: section.accentColor }}>
+                      <span>Learn More</span>
+                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500" style={{ backgroundColor: section.accentColor }}/>

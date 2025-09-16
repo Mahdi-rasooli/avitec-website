@@ -27,7 +27,7 @@ export default function TestVideoMask() {
 
     // --- Initial States ---
     gsap.set(maskedVideo, { clipPath: 'inset(0% 0 0% 0)' }); // Start as a horizontal line in the middle
-    gsap.set(textMask, { fontSize: '150vw' });
+    gsap.set(textMask, { fontSize: '500vw' });
 
     if (overlaySection) {
         gsap.set(overlaySection, {
@@ -56,7 +56,7 @@ export default function TestVideoMask() {
             trigger: container,
             start: "top top",
             end: "+=350%",
-            scrub: 1,
+            scrub: 0.5,
             pin: true,
             anticipatePin: 1,
         },
@@ -64,7 +64,7 @@ export default function TestVideoMask() {
 
     // --- Subsection Expand Animation ---
     if (subsectionVideoWrapper) {
-        gsap.set(subsectionVideoWrapper, { height: '50vh', position: 'relative', zIndex: 40 });
+        gsap.set(subsectionVideoWrapper, { height: '60vh', position: 'relative', zIndex: 40 , top: '0%'});
         if (subsection) {
             gsap.set(subsection, { position: 'relative', zIndex: 20 });
         }
@@ -83,7 +83,14 @@ export default function TestVideoMask() {
     }
 
     // --- New Mask + Video Reveal Animation ---
-    tl.to(maskedVideo, {
+    tl.fromTo(textMask, {
+        x: '180vw', // Start completely off-screen to the right
+    }, {
+        x: '0vw', // Animate to the center
+        duration: 2,
+        ease: 'power2.inOut'
+    }, 'expanded')
+    .to(maskedVideo, {
         clipPath: 'inset(0% 0 0% 0)', // Animate to be fully visible (expanding from middle)
         duration: 2,
         ease: 'power2.inOut'
@@ -160,8 +167,8 @@ export default function TestVideoMask() {
       <div ref={containerRef} className="h-screen relative overflow-hidden bg-black">
         {/* Subsection title and description (above the video) */}
         <section ref={subsectionRef} className="relative z-0 text-white px-6 py-10 md:py-20 max-w-6xl mx-auto">
-          <h3 className="text-2xl md:text-4xl font-bold mb-3 text-left">AVITEC — Branded Motion</h3>
-          <p className="text-base md:text-lg text-gray-300 mb-6 text-left">Scroll to expand the video — it will animate into a full-screen branded reveal.</p>
+          <h3 className="text-2xl md:text-4xl font-bold mb-3 text-left"></h3>
+          <p className="text-base md:text-lg text-gray-300 mb-6 text-left"></p>
         </section>
 
         {/* Full-bleed video wrapper (not constrained by max-width) */}
