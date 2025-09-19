@@ -472,7 +472,7 @@ const HeroTest = () => {
             <div key={slide.id} ref={el => imageRefs.current[index] = el} className="absolute inset-0 w-full h-full">
               <Image src={slide.image} alt={slide.text} fill style={{ objectFit: 'cover' }} className="slide-image" priority={index === 0} />
               <div ref={el => overlayRefs.current[index] = el} className="absolute inset-0 bg-black"></div>
-              <div ref={el => textRefs.current[index] = el} className="absolute left-4 md:left-16 top-45 z-10 text-white">
+              <div ref={el => textRefs.current[index] = el} className="absolute left-4 md:left-16 top-45 md:top-30 z-10 text-white">
                 <h2 className="text-3xl md:text-7xl font-extrabold mb-6 leading-tight">{slide.text}</h2>
                 <p className="text-lg md:text-2xl font-bold opacity-90 max-w-lg leading-relaxed mb-8">{slide.subtext}</p>
               </div>
@@ -482,7 +482,7 @@ const HeroTest = () => {
 
         <div ref={skipButtonRef} className="fixed max-sm:hidden bottom-4 md:bottom-8 right-4 md:right-8 z-50 opacity-0">
           <button onClick={handleSkipSection} className="group cursor-pointer relative overflow-hidden top-8 left-8 bg-white/90 border border-white/20 text-black px-10 py-7 rounded-none font-medium inline-flex items-center gap-2  transition-all duration-300 hover:scale-105 hover:text-white">
-            <span className="absolute inset-0 bg-black/90 transform -translate-x-full transition-transform duration-700 ease-out group-hover:translate-x-0 rounded-none"></span>
+            <span className="absolute inset-0 bg-red-500 transform -translate-x-full transition-transform duration-700 ease-out group-hover:translate-x-0 rounded-none"></span>
             <span className="relative text-lg font-bold">Skip Section</span>
             <ChevronDown className="w-4 h-4 relative transform group-hover:rotate-180 transition-transform duration-300" />
           </button>

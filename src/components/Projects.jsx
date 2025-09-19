@@ -166,33 +166,51 @@ const AnimatedBackground = ({ imageUrl, animationKey }) => {
   );
 };
 
+// Animation variants for the sidebar. Controls the slide-in and fade-in effect.
 const sidebarVariants = {
-  hidden: { opacity: 0, x: -50 },
+  hidden: { opacity: 0, x: -30 },
   visible: {
     opacity: 1,
     x: 0,
     transition: {
+      duration: 0.7,
       staggerChildren: 0.1,
       delayChildren: 0.2,
     },
   },
 };
 
+// Animation variants for individual sidebar items.
 const sidebarItemVariants = {
   hidden: { opacity: 0, x: -20 },
   visible: { opacity: 1, x: 0 },
 };
 
+// Animation variants for the main title and button.
+// Controlled by the `isInView` hook to trigger on scroll.
+const titleVariants = {
+  hidden: { opacity: 0, y: -20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut",
+    },
+  },
+};
+
+// Animation variants for the project cards.
+// Uses a custom index `i` for a staggered delay, creating a cascade effect.
 const projectCardVariants = {
-  hidden: { opacity: 0, x: 50 },
+  hidden: { opacity: 0, x: 30 },
   visible: (i) => ({
     opacity: 1,
     x: 0,
     transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15,
-      delay: i * 0.1,
+      duration: 0.4,
+      ease: "easeOut",
+      delay: i * 0.07,
     },
   }),
 };
@@ -294,9 +312,11 @@ const Sidebar = ({
   );
 };
 
+// The ProjectCard component.
+// Note the responsive classes in `className` for different screen sizes.
 const ProjectCard = ({ project, index }) => (
   <motion.div
-    className="group relative flex-shrink-0 w-[80vw] sm:w-[380px] max-sm:w-[300px] max-sm:h-[300px] h-auto aspect-[4/3] sm:aspect-auto md:h-[490px] md:w-[480px] mr-8 backdrop-blur-xs cursor-pointer bg-white/10 rounded-2xl shadow-lg border border-white/10 p-4 md:p-6 flex flex-col transition-all duration-300 ease-in-out hover:bg-white hover:border-white/30"
+    className="group relative flex-shrink-0 w-[80vw] sm:w-[380px] max-sm:w-[300px] max-sm:h-[300px] h-auto aspect-[4/3] sm:aspect-auto md:h-[380px] md:w-[370px] max-lg:w-[490px] max-lg:h-[480px] mr-8 backdrop-blur-xs cursor-pointer bg-white/10 rounded-2xl shadow-lg border border-white/10 p-4 md:p-6 flex flex-col transition-all duration-300 ease-in-out hover:bg-white hover:border-white/30"
     variants={projectCardVariants}
     custom={index}
   >
@@ -438,6 +458,9 @@ export default function App() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // Hook to trigger animations when the component scrolls into view.
+  // `once: true` ensures the animation only runs once.
+  // `amount: 0.2` triggers the animation when 20% of the component is visible.
   const isInView = useInView(componentRef, { once: true, amount: 0.2 });
 
   const allImageUrls = useMemo(() => {
@@ -557,17 +580,18 @@ export default function App() {
     };
   }, [selectedData, selectedCategoryIndex]);
 
-  // GSAP Pinning effect
+  // GSAP Pinning and transition effect
   useLayoutEffect(() => {
     if (isMobile) return;
 
     const ctx = gsap.context(() => {
-      // Transition effect
+      // Creates a blur and scale transition effect on the previous section (`.hero-test-container`)
+      // as this Projects section scrolls into view.
       ScrollTrigger.create({
         trigger: componentRef.current,
-        start: "top bottom",
-        end: "top top",
-        scrub: 2,
+        start: "top bottom", // Starts when the top of the trigger hits the bottom of the viewport
+        end: "top top",     // Ends when the top of the trigger hits the top of the viewport
+        scrub: 2,           // Smoothly scrubs the animation along with the scroll
         onUpdate: (self) => {
           gsap.to(".hero-test-container", {
             filter: `blur(${self.progress * 7}px)`,
@@ -578,18 +602,18 @@ export default function App() {
         },
       });
 
-      // Original pinning for the Projects section
+      // Pins the Projects section for a short duration while scrolling.
       ScrollTrigger.create({
         trigger: componentRef.current,
         start: "top top",
-        end: "+=10%",
+        end: "+=10%", // Pins for a scroll distance equal to 10% of the viewport height
         pin: true,
         scrub: 1,
         anticipatePin: 1,
       });
     }, componentRef);
 
-    return () => ctx.revert();
+    return () => ctx.revert(); // Cleanup GSAP animations on component unmount
   }, [isMobile]);
 
   return (
@@ -641,7 +665,7 @@ export default function App() {
             >
               {/* Title and Button */}
               <div className="animate-fade-in-down">
-                <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-white mb-4 md:mb-7">
+                <h1 className="text-3xl lg:text-5xl font-extrabold tracking-tight text-white mb-4 md:mb-7">
                   {selectedData.category}
                 </h1>
                 <button className="group relative cursor-pointer flex items-center text-left gap-2 backdrop-blur-xl border-2 border-white/50 text-white px-6 py-2 md:px-8 md:py-3 rounded-full text-base md:text-lg font-semibold overflow-hidden transition-colors duration-500 hover:border-red-500">
@@ -652,10 +676,10 @@ export default function App() {
               </div>
 
               {/* Cards Scroller */}
-              <div className="mt-20 w-full">
+              <div className="mt-20 lg:mt-10 w-full">
                 <motion.div
                   ref={scrollerRef}
-                  className="flex overflow-x-auto pb-8 cursor-grab scrollbar-hide"
+                  className="flex overflow-x-auto pb-8 lg:pb-3 cursor-grab scrollbar-hide"
                   initial="hidden"
                   animate={isInView ? "visible" : "hidden"}
                 >

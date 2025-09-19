@@ -14,33 +14,33 @@ gsap.registerPlugin(ScrollTrigger);
 const sectionsData = [
   {
     id: 1,
-    title: "Engineering Excellence",
-    subtitle: "Innovation • Precision • Sustainability",
-    content: "Our engineering services provide innovative solutions for complex challenges. We focus on delivering sustainable and efficient designs that stand the test of time.",
-    features: ["Advanced CAD Design", "Structural Analysis", "Environmental Impact", "Quality Assurance"],
+    title: "Driving Innovation",
+    subtitle: "Ideas • Technology • Impact",
+    content: "We transform bold ideas into groundbreaking realities. Our culture of curiosity and focus on emerging tech allows us to redefine what's possible for our clients.",
+    features: ["Advanced R&D", "Agile Prototyping", "Future-Focused Tech", "Data-Driven Insights"],
     img: image12,
     stats: { value: "500+", label: "Projects" },
     accentColor: "#3B82F6", // Blue
   },
   {
     id: 2,
-    title: "Strategic Procurement",
-    subtitle: "Efficiency • Quality • Cost Optimization",
-    content: "We streamline the procurement process, ensuring timely delivery of high-quality materials and services. Our strategic sourcing minimizes costs and risks. ",
-    features: ["Global Supplier Network", "Cost Optimization", "Risk Management", "Quality Assurance"],
+    title: "Strategic Approach",
+    subtitle: "Clarity • Collaboration • Results",
+    content: "Our approach is built on deep collaboration. We create agile and bespoke solutions that deliver measurable results and lasting value for every client.",
+    features: ["Client-Centric Process", "Agile Management", "Transparent Communication", "Risk Mitigation"],
     img: image14,
-    stats: { value: "98%", label: "On Time" },
+    stats: { value: "98%", label: "Client Satisfaction" },
     accentColor: "#10B981", // Green
   },
   {
     id: 3,
-    title: "Premium Construction",
-    subtitle: "Safety • Craftsmanship • Reliability",
-    content: "Our construction teams are committed to safety, quality, and efficiency. We deliver projects on time with exceptional craftsmanship and attention to detail.",
-    features: ["Safety First Protocol", "Premium Materials", "Expert Craftsmanship", "Timely Delivery"],
+    title: "Creative Solutions",
+    subtitle: "Design • Vision • Excellence",
+    content: "Creativity is at the heart of our work. We blend artistic vision with technical excellence to build solutions that are both functional and inspiring.",
+    features: ["Human-Centered Design", "Architectural Vision", "Brand Storytelling", "Visual Excellence"],
     img: image15,
-    stats: { value: "100%", label: "Safety Record" },
-    accentColor: "#F59E0B", // Amber
+    stats: { value: "30+", label: "Design Awards" },
+    accentColor: "#EF4444", // Red
   },
 ];
 
@@ -161,7 +161,7 @@ export default function WorkSection() {
                   <span className="text-sm font-medium tracking-widest text-gray-500 uppercase">0{i + 1}</span>
                 </div>
                 <div className="text-element space-y-4">
-                  <h1 className="text-5xl max-sm:text-3xl lg:text-7xl font-extrabold text-gray-800 leading-tight tracking-tight">{section.title}</h1>
+                  <h1 className="text-5xl max-sm:text-3xl max-lg:text-7xl font-extrabold text-gray-800 leading-tight tracking-tight">{section.title}</h1>
                   <p className="text-lg max-sm:hidden font-medium tracking-wide" style={{ color: section.accentColor }}>{section.subtitle}</p>
                 </div>
                 <p className="text-element text-2xl max-sm:hidden text-gray-600 leading-relaxed font-medium max-w-lg">{section.content}</p>
@@ -185,13 +185,20 @@ export default function WorkSection() {
         </div>
 
         {/* STEP 4: Added the white background with the dotty pattern ONLY to the right column. */}
-        <div className="column right relative flex-1 flex justify-center items-center h-screen p-12 bg-white bg-[radial-gradient(#e0e0e0_0.25px,transparent_2px)] [background-size:16px_16px]">
+        <div className="column right relative flex-1 flex justify-center items-center h-screen p-12 bg-white">
+          <div
+              className="absolute inset-0 z-0 opacity-10 h-full"
+              style={{
+                  backgroundImage: 'radial-gradient(#9ca3af 2px, transparent 2px)',
+                  backgroundSize: '20px 20px',
+              }}
+          />
           {sectionsData.map((section) => (
             <div
               key={section.id}
-              className="card absolute w-full h-full lg:w-[700px] lg:h-[800px] rounded-3xl overflow-hidden shadow-2xl group [clip-path:polygon(0%_100%,100%_100%,100%_100%,0_100%)]"
+              className="card absolute w-full h-full md:w-[600px] md:h-[670px] max-lg:w-[700px] max-lg:h-[800px] rounded-xl overflow-hidden shadow-2xl group [clip-path:polygon(0%_100%,100%_100%,100%_100%,0_100%)]"
             >
-              <div className="relative w-full h-full"> 
+              <div className="relative w-full h-full  overflow-hidden"> 
                 <Image src={section.img} alt={section.title} fill className="object-cover" />
               </div>
               <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-all duration-500" />
