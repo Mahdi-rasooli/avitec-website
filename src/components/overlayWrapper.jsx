@@ -4,69 +4,96 @@ import Scroll from './refinedHeroScroll'
 import BeliefSection from './imagesGallery'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import HeroTest from './heroTest'
 
 gsap.registerPlugin(ScrollTrigger)
 
-/**
- * ParallaxSection
- * Smooth, GSAP-powered background drift for a full-viewport section.
- * - You control the background via bgClass (solid color, gradient, etc.)
- * - Foreground children render on top.
- */
-const ParallaxSection = ({ children, bgClass = 'bg-white', className = '' }) => {
-  const sectionRef = useRef(null)
-  const bgRef = useRef(null)
+const ParallaxSection = ({ children, className = '' }) => {
+  const sectionRef = useRef(null);
+  const bgRef = useRef(null);
 
   useLayoutEffect(() => {
-    const section = sectionRef.current
-    const bg = bgRef.current
-    if (!section || !bg) return
+    const section = sectionRef.current;
+    const bg = bgRef.current;
+    if (!section || !bg) return;
+
+    let getRatio = el => window.innerHeight / (window.innerHeight + el.offsetHeight);
 
     const ctx = gsap.context(() => {
-      // start slightly lower, drift up as the section scrolls through
-      gsap.set(bg, { yPercent: 20, willChange: 'transform' })
-      gsap.to(bg, {
-        yPercent: -20,
-        ease: 'none',
+      gsap.fromTo(bg, {
+        backgroundPosition: () => `50% ${-window.innerHeight * getRatio(section)}px`
+      }, {
+        backgroundPosition: () => `50% ${window.innerHeight * (1 - getRatio(section))}px`,
+        ease: "none",
         scrollTrigger: {
           trigger: section,
-          start: 'top bottom',  // when section enters viewport
-          end: 'bottom top',    // when section leaves viewport
+          start: "top bottom",
+          end: "bottom top",
           scrub: true,
+          invalidateOnRefresh: true
         }
-      })
-    }, section)
+      });
+    }, section);
 
-    return () => ctx.revert()
-  }, [])
+    return () => ctx.revert();
+  }, []);
 
   return (
     <section ref={sectionRef} className={`relative isolate min-h-screen overflow-hidden ${className}`}>
-      {/* parallax bg layer */}
-      <div ref={bgRef} className={`absolute inset-0 -z-10 ${bgClass}`} />
-      {/* foreground */}
+      <div
+        ref={bgRef}
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: 'url(/img18.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      />
       <div className="relative z-10">
         {children}
       </div>
     </section>
-  )
-}
+  );
+};
 
 const OverlayWrapper = () => {
+  const scrollCompRef = useRef(null);
+  const stickyContainerRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const scrollComp = scrollCompRef.current;
+    const stickyContainer = stickyContainerRef.current;
+    if (!scrollComp || !stickyContainer) return;
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: stickyContainer,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: true,
+      }
+    });
+
+    tl.to(scrollComp, { filter: 'blur(10px)', ease: 'power1.inOut' });
+
+    return () => {
+      tl.kill();
+    };
+  }, []);
+
   return (
-    <div className="relative">
-      {/* 1) HERO — owns its own pin logic. Nothing else is stacked on it. */}
-      <section className="relative">
-        <Scroll />
-      </section>
-
-      {/* 2) GALLERY — wrapped in a parallax section. */}
-      <ParallaxSection bgClass="bg-[#ebeeec]">
-        {/* Keep the exact gallery styling/markup from your component */}
-        <BeliefSection />
-      </ParallaxSection>
+    <div>
+      <div ref={scrollCompRef}>
+        <HeroTest />
+      </div>
+      <div ref={stickyContainerRef} style={{ position: 'sticky', top: '0', zIndex: 10 }}>
+        <ParallaxSection>
+          <BeliefSection />
+        </ParallaxSection>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default OverlayWrapper
+export default OverlayWrapper;
