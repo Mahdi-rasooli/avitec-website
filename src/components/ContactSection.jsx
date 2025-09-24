@@ -200,11 +200,10 @@ const SuggestionForm = () => {
 export default function ContactSection() {
   return (
     <div className="font-satoshi contact-section ">
-      <main className="relative bg-white z-10">
+      {/* <main className="relative bg-white z-10">
         <SuggestionForm />
         <div className="h-12 bg-[#262836]"></div>{" "}
-        {/* Spacer to ensure footer reveal is smooth */}
-      </main>
+      </main> */}
       <div className="sticky bottom-0 bg-[#46535e33]">
         <AvitecFooter />
       </div>

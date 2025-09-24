@@ -152,7 +152,7 @@ export default function WorkSection() {
       <div className="wrapper w-full flex flex-col lg:flex-row overflow-hidden bg-white">
         
         {/* This left column is transparent, so it will now correctly show the white background from its parent. */}
-        <div className="column left relative flex-1 hidden lg:flex justify-start items-center h-screen px-12 lg:px-20">
+        <div className="column left relative flex-1 hidden lg:flex justify-start items-center h-screen px-12 xl:px-20">
           {sectionsData.map((section, i) => (
             <div key={section.id} className="left-content absolute opacity-0 invisible w-full max-w-xl">
               <div className="space-y-8">
@@ -161,10 +161,10 @@ export default function WorkSection() {
                   <span className="text-sm font-medium tracking-widest text-gray-500 uppercase">0{i + 1}</span>
                 </div>
                 <div className="text-element space-y-4">
-                  <h1 className="text-5xl max-sm:text-3xl max-lg:text-7xl font-extrabold text-gray-800 leading-tight tracking-tight">{section.title}</h1>
-                  <p className="text-lg max-sm:hidden font-medium tracking-wide" style={{ color: section.accentColor }}>{section.subtitle}</p>
+                  <h1 className="text-5xl max-sm:text-3xl xl:text-6xl font-extrabold text-gray-800 leading-tight tracking-tight">{section.title}</h1>
+                  <p className="text-lg max-sm:hidden xl:text-2xl font-medium tracking-wide" style={{ color: section.accentColor }}>{section.subtitle}</p>
                 </div>
-                <p className="text-element text-2xl max-sm:hidden text-gray-600 leading-relaxed font-medium max-w-lg">{section.content}</p>
+                <p className="text-element text-2xl max-sm:hidden xl:text-3xl text-gray-600 leading-relaxed font-medium max-w-lg">{section.content}</p>
                 <div className="text-element space-y-3 pt-4">
                   {section.features.slice(0, 3).map((feature, idx) => (
                     <div key={idx} className="flex items-center gap-4 text-gray-700">
@@ -196,7 +196,7 @@ export default function WorkSection() {
           {sectionsData.map((section) => (
             <div
               key={section.id}
-              className="card absolute w-full h-full md:w-[600px] md:h-[670px] max-lg:w-[700px] max-lg:h-[800px] rounded-xl overflow-hidden shadow-2xl group [clip-path:polygon(0%_100%,100%_100%,100%_100%,0_100%)]"
+              className="card absolute w-full h-full md:w-[600px] md:h-[670px] xl:w-[800px] xl:h-[850px] rounded-xl overflow-hidden shadow-2xl group [clip-path:polygon(0%_100%,100%_100%,100%_100%,0_100%)]"
             >
               <div className="relative w-full h-full  overflow-hidden"> 
                 <Image src={section.img} alt={section.title} fill className="object-cover" />

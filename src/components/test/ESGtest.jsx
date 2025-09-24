@@ -44,6 +44,7 @@ function ESGsection() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
+      // Initial setup
       gsap.set(".background-image-container", { clipPath: "polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)" });
       gsap.set(".letter", { opacity: 0, xPercent: -50, yPercent: -10 });
 
@@ -60,17 +61,18 @@ function ESGsection() {
         },
       });
 
+      // 1. Animate letters with a more dynamic "unfold" effect
       const entryOrder = ["g", "s", "e"];
       entryOrder.forEach((key, index) => {
         const letterSelector = `[data-section="${key}"] .letter`;
         entryTl.fromTo(letterSelector, 
-          { clipPath: "polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)", y: 60, scale: 0.95, opacity: 0, filter: "blur(8px)", xPercent: -50, yPercent: -10 }, 
-          { clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)", y: 0, scale: 1, opacity: 0.5, filter: "blur(0px)", duration: 1.6, ease: "power4.out", xPercent: -50, yPercent: -10 }, 
+          { clipPath: "polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)", y: 60, scale: 0.9, opacity: 0, rotationX: -45, filter: "blur(10px)", xPercent: -50, yPercent: -10, transformPerspective: 800 }, 
+          { clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)", y: 0, scale: 1, opacity: 0.5, rotationX: 0, filter: "blur(0px)", duration: 1.6, ease: "power4.out", xPercent: -50, yPercent: -10 }, 
           index * 0.25
         );
       });
 
-      // 1. Animate all backgrounds into view with a left-to-right stagger
+      // 2. Animate all backgrounds into view with a left-to-right stagger (reveals E, then S, then G)
       entryTl.to(".background-image-container", {
         clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
         duration: 1.5,
@@ -78,11 +80,22 @@ function ESGsection() {
         stagger: { each: 0.3, from: "start" }
       }, "+=0.4");
 
-      // 2. After the stagger, instantly hide the 'S' and 'G' backgrounds, leaving 'E' perfectly in place.
-      const collapsedClipPath = "polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)";
-      entryTl.set(['[data-section="s"] .background-image-container', '[data-section="g"] .background-image-container'], { 
-        clipPath: collapsedClipPath 
-      });
+      // 3. Smoothly animate 'G' and 'S' backgrounds away to focus on 'E'
+      const collapsedClipPath = "polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)"; // Wipes from right to left
+      
+      // Animate G away first (it's on top)
+      entryTl.to('[data-section="g"] .background-image-container', {
+        clipPath: collapsedClipPath,
+        duration: 1.2,
+        ease: "power3.inOut"
+      }, "-=0.5");
+
+      // Then animate S away
+      entryTl.to('[data-section="s"] .background-image-container', {
+        clipPath: collapsedClipPath,
+        duration: 1.2,
+        ease: "power3.inOut"
+      }, "<0.2");
 
     }, pinContainerRef);
 
@@ -178,13 +191,13 @@ function ESGsection() {
               <div className="background-overlay pointer-events-none absolute inset-0 bg-black/20 opacity-0 transition-opacity duration-300"></div>
               <h2 data-section={item.key} aria-hidden="true" className="letter text-[17vw] md:text-[15vw] font-black select-none absolute top-[10%] left-[50%] -translate-x-1/2 -translate-y-[10%] text-white opacity-0">{item.letter}</h2>
               <div data-section={item.key} className="content absolute top-[28%] lg:top-[22%] left-[50%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4 opacity-0">
-                <h3 className="text-4xl lg:text-5xl left-[50%]  font-bold text-white"><span className="text-red-500">{item.title.charAt(0)}</span>{item.title.slice(1)}</h3>
+                <h3 className="text-4xl lg:text-5xl xl:text-6xl left-[50%]  font-bold text-white"><span className="text-red-500">{item.title.charAt(0)}</span>{item.title.slice(1)}</h3>
                 <div className="learn-more-btn group relative flex items-center border border-gray-200 rounded-full backdrop-blur-sm px-8 py-4 text-lg font-semibold text-white shadow-md overflow-hidden transition-colors duration-300 group-hover:border-red-500">
                   <span className="btn-bg absolute inset-0 bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-in-out" style={{ transformOrigin: 'left' }}></span>
                   <span className="btn-text relative z-10 flex items-center gap-2 text-white group-hover:text-red-500 transition-colors duration-300">Learn More <ArrowRight /></span>
                 </div>
               </div>
-              <div data-section={item.key} className={`description absolute bottom-[15%] ${item.key === 'e' ? 'left-1/3' : ''} left-1/2 -translate-x-1/2 w-[90%] mx-auto text-left opacity-0`}>
+              <div data-section={item.key} className={`description absolute bottom-[15%] ${item.key === 'e' ? 'left-1/2' : item.key === 'g' ? 'left-1/2' : ''} left-1/2 -translate-x-1/2 w-[90%] mx-auto text-left opacity-0`}>
                 <p className="text-white text-2xl font-light">{item.description}</p>
               </div>
             </button>

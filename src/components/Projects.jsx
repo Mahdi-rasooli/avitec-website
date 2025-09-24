@@ -316,7 +316,7 @@ const Sidebar = ({
 // Note the responsive classes in `className` for different screen sizes.
 const ProjectCard = ({ project, index }) => (
   <motion.div
-    className="group relative flex-shrink-0 w-[80vw] sm:w-[380px] max-sm:w-[300px] max-sm:h-[300px] h-auto aspect-[4/3] sm:aspect-auto md:h-[380px] md:w-[370px] max-lg:w-[490px] max-lg:h-[480px] mr-8 backdrop-blur-xs cursor-pointer bg-white/10 rounded-2xl shadow-lg border border-white/10 p-4 md:p-6 flex flex-col transition-all duration-300 ease-in-out hover:bg-white hover:border-white/30"
+    className="group relative flex-shrink-0 w-[80vw] sm:w-[380px] max-sm:w-[300px] max-sm:h-[300px] h-auto aspect-[4/3] sm:aspect-auto md:h-[380px] md:w-[370px] xl:w-[490px] xl:h-[480px] mr-8 backdrop-blur-xs cursor-pointer bg-white/10 rounded-2xl shadow-lg border border-white/10 p-4 md:p-6 flex flex-col transition-all duration-300 ease-in-out hover:bg-white hover:border-white/30"
     variants={projectCardVariants}
     custom={index}
   >
@@ -665,7 +665,7 @@ export default function App() {
             >
               {/* Title and Button */}
               <div className="animate-fade-in-down">
-                <h1 className="text-3xl lg:text-5xl font-extrabold tracking-tight text-white mb-4 md:mb-7">
+                <h1 className="text-3xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight text-white mb-4 md:mb-7">
                   {selectedData.category}
                 </h1>
                 <button className="group relative cursor-pointer flex items-center text-left gap-2 backdrop-blur-xl border-2 border-white/50 text-white px-6 py-2 md:px-8 md:py-3 rounded-full text-base md:text-lg font-semibold overflow-hidden transition-colors duration-500 hover:border-red-500">
@@ -676,7 +676,7 @@ export default function App() {
               </div>
 
               {/* Cards Scroller */}
-              <div className="mt-20 lg:mt-10 w-full">
+              <div className="mt-20 xl:mt-20 lg:mt-10 w-full">
                 <motion.div
                   ref={scrollerRef}
                   className="flex overflow-x-auto pb-8 lg:pb-3 cursor-grab scrollbar-hide"
@@ -695,7 +695,7 @@ export default function App() {
 
                 {selectedData.projects.length > 2 && (
                   <div className="w-full mt-4">
-                    <div className="flex justify-start items-center gap-2 mb-6">
+                    <div className="flex justify-start items-center gap-2 xl:mb-10 mb-6">
                       <button
                         onClick={() => handleArrowScroll("left")}
                         disabled={!canScrollLeft}

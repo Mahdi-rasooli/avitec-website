@@ -127,7 +127,7 @@ const App = () => {
                 />
                 <div className="relative z-10 flex items-center justify-center h-full p-16 lg:p-8">
                     <div
-                        className="relative w-full lg:w-[90%] h-[70%] lg:h-[100%] rounded-xl overflow-hidden"
+                        className="relative w-full lg:w-[90%] h-[70%] xl:h-[90%] rounded-xl overflow-hidden"
                     >
                          <video
                             ref={videoRef}
@@ -157,7 +157,7 @@ const App = () => {
                     variants={textContainerVariants}
                 >
                     <motion.h1
-                        className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight tracking-tighter"
+                        className="text-5xl xl:text-7xl md:text-5xl font-extrabold text-gray-900 leading-tight tracking-tighter"
                         variants={textVariants}
                     >
                         <span className="text-red-600">AVITEC's </span>Extraordinary Teams Building <span className='text-red-400'>Inspiring Projects</span>

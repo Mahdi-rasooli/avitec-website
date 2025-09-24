@@ -14,7 +14,9 @@ import image16 from '../../public/img16.jpg'
 import image10 from '../../public/img10.jpg'
 import image21 from '../../public/img21.jpg'
 import image22 from '../../public/img22.jpg'
-import image23 from '../../public/img23.jpg'
+import image24 from '../../public/img24.jpg'
+import image25 from '../../public/img25.jpg'
+import image30 from '../../public/img30.jpg'
 
 
 
@@ -32,7 +34,7 @@ const slides = [
     text: 'Procurement',
     mobileTitle: 'Strategic Procurement',
     subtext: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    image: image7
+    image: image24
   },
   {
     id: 'construction',
@@ -472,7 +474,7 @@ const HeroTest = () => {
             <div key={slide.id} ref={el => imageRefs.current[index] = el} className="absolute inset-0 w-full h-full">
               <Image src={slide.image} alt={slide.text} fill style={{ objectFit: 'cover' }} className="slide-image" priority={index === 0} />
               <div ref={el => overlayRefs.current[index] = el} className="absolute inset-0 bg-black"></div>
-              <div ref={el => textRefs.current[index] = el} className="absolute left-4 md:left-16 top-45 md:top-30 z-10 text-white">
+              <div ref={el => textRefs.current[index] = el} className="absolute left-4 md:left-16 xl:top-45 top-45 md:top-30 z-10 text-white">
                 <h2 className="text-3xl md:text-7xl font-extrabold mb-6 leading-tight">{slide.text}</h2>
                 <p className="text-lg md:text-2xl font-bold opacity-90 max-w-lg leading-relaxed mb-8">{slide.subtext}</p>
               </div>
