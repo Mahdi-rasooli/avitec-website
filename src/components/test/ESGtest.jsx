@@ -46,7 +46,8 @@ function ESGsection() {
     const ctx = gsap.context(() => {
       // Initial setup
       gsap.set(".background-image-container", { clipPath: "polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%)" });
-      gsap.set(".letter", { opacity: 0, xPercent: -50, yPercent: -10 });
+      gsap.set(".letter", { opacity: 0, xPercent: -50, yPercent: -10, x: 0, left: '50%' });
+      gsap.set(".content", { opacity: 0, xPercent: -50, yPercent: -50, x: 0, left: '50%' });
 
       const entryTl = gsap.timeline({
         scrollTrigger: {
@@ -123,10 +124,10 @@ function ESGsection() {
       .to(`.esg-section:not(${activeSelector})`, { flexGrow: inactiveFlex }, 0)
       .to(`${activeSelector} .background-overlay`, { opacity: 0 }, 0)
       .to(`.esg-section:not(${activeSelector}) .background-overlay`, { opacity: 0 }, 0)
-      .to(`${activeSelector} .letter`, { scale: activeLetterScale, opacity: 1, left: activeLetterLeft, xPercent: -50 }, 0)
-      .to(`.esg-section:not(${activeSelector}) .letter`, { scale: inactiveLetterScale, opacity: 0.5, left: inactiveLetterLeft, xPercent: -50 }, 0)
-      .to(`${activeSelector} .content`, { opacity: 1, y: 0, left: activeContentLeft, xPercent: -50 }, 0)
-      .to(`.esg-section:not(${activeSelector}) .content`, { opacity: 0, y: 20, left: inactiveContentLeft, xPercent: -50 }, 0);
+      .to(`${activeSelector} .letter`, { scale: activeLetterScale, opacity: 1, x: '-10vw' }, 0)
+      .to(`.esg-section:not(${activeSelector}) .letter`, { scale: inactiveLetterScale, opacity: 0.5, x: 0 }, 0)
+      .to(`${activeSelector} .content`, { opacity: 1, y: 0, x: '10vw' }, 0)
+      .to(`.esg-section:not(${activeSelector}) .content`, { opacity: 0, y: 20, x: 0 }, 0);
 
     // Animate descriptions separately for better control
     if (prevSelector) {
@@ -156,13 +157,13 @@ function ESGsection() {
   };
 
   const handleMouseEnter = (key) => {
-    if (key === activeSection) return;
+    if (!isEntryAnimationComplete || key === activeSection) return;
     gsap.to(`[data-section="${key}"] .letter`, { scale: ANIMATION_CONFIG.activeLetterScale, duration: 0.5, ease: "power3.out" });
     gsap.to(`[data-section="${key}"] .background-overlay`, { opacity: 0.4, duration: 0.01, ease: "power3.out" });
   };
 
   const handleMouseLeave = (key) => {
-    if (key === activeSection) return;
+    if (!isEntryAnimationComplete || key === activeSection) return;
     gsap.to(`[data-section="${key}"] .letter`, { scale: ANIMATION_CONFIG.inactiveLetterScale, duration: 0.5, ease: "power3.out" });
     gsap.to(`[data-section="${key}"] .background-overlay`, { opacity: 0, duration: 0.01, ease: "power3.out" });
   };
