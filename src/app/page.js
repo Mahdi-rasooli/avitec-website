@@ -11,10 +11,10 @@ import ContactSection from "@/components/ContactSection";
 export default function Home() {
   return (
     <div>
-      <ScrollHeader />
+      {/* <ScrollHeader />
       <TestHero /> 
       <Projects />
-      <NextSection />
+      <NextSection /> */}
       <WorkSection />
       {/* <ESGsection /> */}
       <PinnedESG />
