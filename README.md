@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# نیازمندی‌های فنی برای استقرار پروژه وبسایت آویتک
 
-## Getting Started
+این سند، نیازمندی‌های فنی و مراحل لازم برای استقرار و اجرای پروژه وبسایت جدید آویتک بر روی سرورهای شرکت را تشریح می‌کند.
 
-First, run the development server:
+## ۱. فریمورک اصلی و محیط اجرایی
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **فریمورک:** این پروژه با استفاده از **Next.js** که یک فریمورک مدرن بر پایه **React** است، توسعه داده شده است.
+- **محیط اجرایی (Runtime):** برای اجرای این پروژه بر روی سرور، **Node.js** الزامی است. پیشنهاد می‌شود از آخرین نسخه LTS (پشتیبانی بلندمدت) مانند **Node.js 18.x یا 20.x** استفاده شود.
+- **مدیریت بسته‌ها:** وابستگی‌های پروژه از طریق **npm** (Node Package Manager) مدیریت می‌شود که به همراه Node.js نصب می‌گردد.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ۲. کتابخانه‌ها و تکنولوژی‌های کلیدی
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+این پروژه از کتابخانه‌های مدرن برای پیاده‌سازی انیمیشن‌ها و رابط کاربری پیشرفته استفاده می‌کند:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **انیمیشن:**
+  - **GSAP (GreenSock Animation Platform):** برای انیمیشن‌های پیچیده و مبتنی بر اسکرول.
+  - **Framer Motion:** برای انیمیشن‌های رابط کاربری و تعاملی.
+- **گرافیک سه‌بعدی:**
+  - **React Three Fiber:** برای رندر کردن مدل‌های سه‌بعدی (مانند آیکون چرخان در بخش تماس با ما).
+- **استایل‌دهی:**
+  - **Tailwind CSS:** برای طراحی و استایل‌دهی کلی وبسایت.
 
-## Learn More
+## ۳. نیازمندی‌های سرور و استقرار
 
-To learn more about Next.js, take a look at the following resources:
+این بخش شامل نکات کلیدی برای تیم IT جهت آماده‌سازی سرور می‌باشد:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **سیستم‌عامل:** استفاده از یک سیستم‌عامل مبتنی بر **لینوکس** (مانند Ubuntu, Debian, CentOS) به عنوان استاندارد برای میزبانی برنامه‌های Node.js قویاً توصیه می‌شود.
+- **وب سرور (Reverse Proxy):** استفاده از یک وب سرور مانند **Nginx** یا **Apache** در جلوی برنامه Next.js یک استاندارد صنعتی است. این کار برای موارد زیر ضروری است:
+  - مدیریت گواهی‌نامه‌های SSL (برای HTTPS).
+  - بهبود عملکرد از طریق کش کردن فایل‌های استاتیک.
+  - افزایش امنیت و توزیع بار (Load Balancing).
+- **مدیریت فرآیند (Process Manager):** برای اطمینان از اجرای مداوم برنامه و راه‌اندازی مجدد خودکار در صورت بروز خطا، استفاده از یک ابزار مدیریت فرآیند مانند **PM2** ضروری است.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### حداقل سخت‌افزار مورد نیاز سرور
+- **پردازنده (CPU):** ۲ هسته
+- **رم (RAM):** ۲ گیگابایت
+- **فضای ذخیره‌سازی:** ۲۵ گیگابایت (SSD توصیه می‌شود)
 
-## Deploy on Vercel
+## نرم‌افزارهای مورد نیاز برای نصب روی سرور
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+لیست زیر شامل نرم‌افزارهایی است که باید مستقیماً توسط تیم IT بر روی سرور نصب شوند:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1.  **Node.js:** نسخه `18.x` یا `20.x` (محیط اجرایی اصلی).
+2.  **Nginx:** به عنوان وب سرور و Reverse Proxy توصیه می‌شود.
+3.  **PM2:** برای مدیریت و پایدار نگه داشتن فرآیند برنامه (`npm install -g pm2`).
+
+**نکته مهم:** فریمورک اصلی پروژه (**Next.js**) و سایر کتابخانه‌ها (مانند React, GSAP و ...) نیازی به نصب جداگانه روی سرور ندارند. این موارد به عنوان وابستگی‌های پروژه تعریف شده‌اند و با اجرای دستور `npm install` به صورت خودکار در پوشه پروژه نصب خواهند شد.
+
+## ۴. فرآیند Build و استقرار
+
+مراحل زیر برای راه‌اندازی برنامه بر روی سرور باید انجام شود:
+
+۱. **نصب وابستگی‌ها:** در پوشه اصلی پروژه، دستور `npm install` را اجرا کنید تا تمام کتابخانه‌های مورد نیاز دانلود شوند.
+۲. **ساخت نسخه پروداکشن (Build):** دستور `npm run build` را اجرا کنید. این دستور یک نسخه بهینه‌سازی شده و آماده برای استقرار از وبسایت را در پوشه `.next` ایجاد می‌کند.
+۳. **اجرای برنامه:** دستور `npm run start` را اجرا کنید تا سرور پروداکشن Next.js شروع به کار کند. برای اجرای پایدار، توصیه می‌شود این دستور از طریق PM2 اجرا شود (مثال: `pm2 start npm --name "avitec-website" -- start`).
+
+---
+با فراهم کردن این زیرساخت، وبسایت با بهترین عملکرد، امنیت و پایداری در دسترس خواهد بود.

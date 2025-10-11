@@ -25,22 +25,22 @@ const slides = [
   {
     id: 'engineering',
     text: 'Engineering',
-    mobileTitle: 'Precision Engineering',
-    subtext: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    mobileTitle: 'Advanced Engineering Solutions',
+    subtext: 'Delivering comprehensive, multi-disciplinary engineering services from conceptual design to detailed planning, ensuring technical excellence and innovation.',
     image: image16
   },
   {
     id: 'procurement',
     text: 'Procurement',
-    mobileTitle: 'Strategic Procurement',
-    subtext: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    mobileTitle: 'Strategic Global Procurement',
+    subtext: 'Optimizing supply chains with strategic sourcing and logistical expertise to procure high-quality materials and equipment, on time and within budget.',
     image: image24
   },
   {
     id: 'construction',
     text: 'Construction',
-    mobileTitle: 'Excellence in Construction',
-    subtext: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    mobileTitle: 'Excellence in Project Execution',
+    subtext: 'Managing and executing complex construction projects with a commitment to safety, quality, and sustainability, turning ambitious visions into reality.',
     image: image8,
   },
 ];
